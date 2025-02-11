@@ -1,0 +1,64 @@
+[
+    {
+      "review": "Mr Henry and his wife is an awesome guest 🥰🥰. He kindness, lovely, when he check out, my house is so clean and he already calculate the Minibar. We can feel the...",
+      "name": "Long",
+      "date": "Yesterday",
+       "image": "https://rickandmortyapi.com/api/character/avatar/1.jpeg"
+
+    },
+    {
+      "review": "Sarah was such a polite and organized guest! She kept the room tidy and even left a sweet thank-you note 😊. Highly recommended!",
+      "name": "John",
+      "date": "2 days ago",
+      "image": "https://rickandmortyapi.com/api/character/avatar/3.jpeg"
+    },
+    {
+      "review": "James and his family were perfect guests! So clean and respectful, and they even watered my plants 🌱. Would love to host them again.",
+      "name": "Emily",
+      "date": "Last week",
+      "image": "https://rickandmortyapi.com/api/character/avatar/4.jpeg"
+    },
+    {
+      "review": "Anna was very quiet and respectful during her stay. She left the house spotless! A truly great guest 🙌.",
+      "name": "Steve",
+      "date": "Yesterday",
+      "image": "https://rickandmortyapi.com/api/character/avatar/6.jpeg"
+    },
+    {
+      "review": "The Smiths were such a joy to host! They cleaned up everything and were super kind. My house has never looked better after a guest 😊.",
+      "name": "Sophia",
+      "date": "3 days ago",
+      "image": "https://rickandmortyapi.com/api/character/avatar/10.jpeg"
+    },
+    {
+      "review": "Michael was very considerate and easy to communicate with. He followed all house rules and left the place in perfect condition. Highly recommended guest!",
+      "name": "Daniel",
+      "date": "2 days ago",
+      "image": "https://example.com/profile6.jpg"
+    },
+    {
+      "review": "Olivia and her friends were amazing! They kept everything clean and were so polite. I’d host them anytime ❤️.",
+      "name": "Charlotte",
+      "date": "Last month",
+      "image": "https://example.com/profile7.jpg"
+    },
+    {
+      "review": "Mr. Johnson is a very kind and organized guest. He even helped fix a small issue with the air conditioner. Thank you so much!",
+      "name": "Linda",
+      "date": "Last week",
+      "image": "https://rickandmortyapi.com/api/character/avatar/10.jpeg"
+    },
+    {
+      "review": "The Lopez family are fantastic guests. They left everything spotless and were a pleasure to chat with. Highly recommended!",
+      "name": "Chris",
+      "date": "3 weeks ago",
+      "image": "https://example.com/profile9.jpg"
+    },
+    {
+      "review": "Evelyn and her husband are very sweet and respectful. The house was in perfect condition after their stay. A 10/10 guest experience!",
+      "name": "Mark",
+      "date": "Yesterday",
+      "image": "https://rickandmortyapi.com/api/character/avatar/10.jpeg"
+    }
+  ]
+  

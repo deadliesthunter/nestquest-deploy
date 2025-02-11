@@ -1,0 +1,35 @@
+[
+    {
+        "created_at": "2025-01-22",
+        "description": "the amazing view with scence",
+        "facilities": "wifi",
+        "host": {
+            "firstname": "Kitty",
+            "lastname": "Kay"
+        },
+        "id": 2,
+        "images": [
+            null,
+            null
+        ],
+        "is_available": true,
+        "location": "pokhara",
+        "price": "2000.00",
+        "title": "place near by aaaa"
+    },
+    {
+        "created_at": "2025-01-12",
+        "description": "awsome room",
+        "facilities": "{\"pool\": true}",
+        "host": {
+            "firstname": "manish",
+            "lastname": "manish"
+        },
+        "id": 1,
+        "images": [],
+        "is_available": true,
+        "location": "pokhara",
+        "price": "12000.00",
+        "title": "Room for sale"
+    }
+]
