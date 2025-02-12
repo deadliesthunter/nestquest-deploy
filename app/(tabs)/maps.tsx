@@ -1,94 +1,158 @@
-import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
-import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Stack } from 'expo-router';
 import apartments from '@/assets/data/appartments.json';
-import CustomMarker from '@/components/CustomMarker';
 import ApartmentListItem from '@/components/ApartmentListItem';
 import { SafeAreaView } from 'react-native';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
-// Conditionally import MapView only for native platforms
-let MapView;
-if (Platform.OS !== 'web') {
-  MapView = require('react-native-maps').default;
-}
+import { WebView } from 'react-native-webview';
+import * as Location from 'expo-location'; // Import expo-location
+import Entypo from '@expo/vector-icons/Entypo';
 
 type Apartment = (typeof apartments)[0];
 
 export default function AirbnbScreen() {
   const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
-  const [mapRegion, setMapRegion] = useState({
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const snapPoints = useMemo(() => [30, '70%'], []);
 
-  // variables
-  const snapPoints = useMemo(() => [65, '70%'], []);
+  // Function to generate Leaflet map HTML
+  const getLeafletMapHTML = () => `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>OpenStreetMap with Leaflet</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <style>
+          body, html, #map { margin: 0; padding: 0; height: 100%; width: 100%; }
+        </style>
+      </head>
+      <body>
+        <div id="map"></div>
+        <script>
+          var map = L.map('map').setView([${userLocation?.latitude || 37.78825}, ${
+            userLocation?.longitude || -122.4324
+          }], 13); // Default coordinates
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(map);
+
+          // Add user location marker if available
+          ${userLocation
+            ? `L.marker([${userLocation.latitude}, ${userLocation.longitude}], { icon: L.icon({
+                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+              }) })
+                .addTo(map)
+                .bindPopup("Your Location")
+                .openPopup();`
+            : ''}
+
+          // Add markers for apartments
+          ${apartments
+            .map(
+              (apartment) =>
+                `L.marker([${apartment.latitude}, ${apartment.longitude}])
+                  .addTo(map)
+                  .bindPopup("${apartment.title}")
+                  .on('click', function() {
+                    window.ReactNativeWebView.postMessage(JSON.stringify(${JSON.stringify(apartment)}));
+                  });`
+            )
+            .join('\n')}
+        </script>
+      </body>
+    </html>
+  `;
+
+  // Request location permissions and fetch user's current location
+  const locateUser = async () => {
+    try {
+      // Request foreground location permission
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Location permission denied');
+        return;
+      }
+
+      // Fetch the user's current location
+      const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const { latitude, longitude } = location.coords;
+
+      // Update user location state
+      setUserLocation({ latitude, longitude });
+
+      // Optionally, re-render the map with the new location
+      // You can reload the WebView or use JavaScript injection to update the map dynamically
+    } catch (error) {
+      console.error('Error fetching location:', error.message);
+    }
+  };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View>
+      <View style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
 
-        {/* Platform-Specific Rendering */}
-        {Platform.OS !== 'web' ? (
-          <>
-            {/* MapView with OpenStreetMap */}
-            <MapView
-              style={styles.map}
-              region={mapRegion}
-              provider={MapView.PROVIDER_DEFAULT} // Use OpenStreetMap
-            >
-              {apartments.map((apartment) => (
-                <CustomMarker
-                  key={apartment.id}
-                  apartment={apartment}
-                  onPress={() => setSelectedApartment(apartment)}
-                />
-              ))}
-            </MapView>
+        {/* Leaflet Map in WebView */}
+        <WebView
+          style={styles.map}
+          originWhitelist={['*']}
+          source={{ html: getLeafletMapHTML() }}
+          onMessage={(event) => {
+            try {
+              const apartment = JSON.parse(event.nativeEvent.data);
+              setSelectedApartment(apartment);
+            } catch (error) {
+              console.error('Error parsing message:', error);
+            }
+          }}
+          scalesPageToFit={true}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+        />
 
-            {/* Display selected Apartment */}
-            {selectedApartment && (
-              <ApartmentListItem
-                apartment={selectedApartment}
-                containerStyle={styles.selectedContainer}
-                onClose={() => setSelectedApartment(null)} // Pass the onClose callback
-              />
-            )}
+        {/* Locate Me Button */}
+        <TouchableOpacity style={styles.locateButton} onPress={locateUser}>
+          <Text style={styles.locateButtonText}><Entypo name="location" size={24} color="green" /></Text>
+        </TouchableOpacity>
 
-            {/* Bottom Sheet */}
-            <BottomSheet index={0} snapPoints={snapPoints}>
-              <View style={{}} className="bg-slate-100 rounded-2xl mt-0">
-                <Text style={styles.listTitle} className="mt-3">
-                  Over {apartments.length} places
-                </Text>
-                <BottomSheetFlatList
-                  data={apartments}
-                  contentContainerStyle={{ gap: 10, padding: 10 }}
-                  renderItem={({ item }) => <ApartmentListItem apartment={item} />}
-                />
-              </View>
-            </BottomSheet>
-          </>
-        ) : (
-          // Web Fallback
-          <View style={styles.webContainer}>
-            <Text style={styles.webText}>Maps are not supported on the web.</Text>
-          </View>
+        {/* Display selected Apartment */}
+        {selectedApartment && (
+          <ApartmentListItem
+            apartment={selectedApartment}
+            containerStyle={styles.selectedContainer}
+            onClose={() => setSelectedApartment(null)}
+          />
         )}
+
+        {/* Bottom Sheet */}
+        <BottomSheet index={0} snapPoints={snapPoints}>
+          <View style={styles.bottomSheetContainer}>
+            <Text style={styles.listTitle}>Over {apartments.length} places</Text>
+            <BottomSheetFlatList
+              data={apartments}
+              contentContainerStyle={{ gap: 10, padding: 10 }}
+              renderItem={({ item }) => <ApartmentListItem apartment={item} />}
+            />
+          </View>
+        </BottomSheet>
       </View>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   map: {
-    width: '100%',
-    height: '100%',
+    flex: 1,
   },
   listTitle: {
     textAlign: 'center',
@@ -103,13 +167,26 @@ const styles = StyleSheet.create({
     right: 10,
     left: 10,
   },
-  webContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  bottomSheetContainer: {
+    backgroundColor: '#f3f4f6',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 10,
   },
-  webText: {
-    fontSize: 18,
+  locateButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 50,
+    elevation: 5,
+    
+
+  },
+  locateButtonText: {
+    color: '#fff',
     fontWeight: 'bold',
+
   },
 });

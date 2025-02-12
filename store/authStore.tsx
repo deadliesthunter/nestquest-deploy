@@ -1,6 +1,24 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Text } from "react-native";
+import { Platform, Text } from "react-native";
+import Constants from "expo-constants";
+
+let API_BASE_URL = "";
+
+// Running on a real device
+if (!Constants.expoConfig?.hostUri) {
+  API_BASE_URL = "https://your-production-api.com/api"; // Use a production server in real deployments
+} else {
+  // Local development
+  const LOCAL_IP = "192.168.1.76"; // Replace with your local IP
+  API_BASE_URL =
+    Platform.OS === "ios"
+      ? `http://${LOCAL_IP}:8000/api`  // iOS (Simulator & Device)
+      : `http://${LOCAL_IP}:8000/api`; // Android (Emulator & Device)
+}
+
+export { API_BASE_URL };
+
 
 const AuthContext = createContext();
 
@@ -11,7 +29,8 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true); // For showing a loading state
 
   // API Base URL (use environment variables for production)
-  const API_BASE_URL = "http://127.0.0.1:8000/api";
+  //const API_BASE_URL =Platform.OS=="ios"? "http://127.0.0.1:8000/api":"http://10.0.2.2:8000/api";
+  
 
   // Login action
   const login = async (email, password) => {
