@@ -10,30 +10,51 @@ import {
   Button,
   Alert,
 } from "react-native";
-import { AuthContext } from "@/store/authStore";
+import * as FileSystem from 'expo-file-system';
+import * as ImagePicker from 'expo-image-picker';
+
+
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
-import * as ImagePicker from "expo-image-picker";
+import useAuthStore from "@/store/authStore";
 
 export default function MakePost() {
+  const { user, isAuthenticated, logout,token } = useAuthStore();
 
-  const { user ,token} = useContext(AuthContext);
 
   const [image, setImage] = useState<string | null>(null);
+  const [imageView, setImageView] = useState<string | null>(null);
+
+  
   const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos"],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
-
-    //console.log(result);
-
+  
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      const { uri } = result.assets[0]; 
+      setImageView(uri); 
+  
+      const fileInfo = await FileSystem.getInfoAsync(uri);
+      if (fileInfo.exists) {
+        console.log('File info:', fileInfo);
+  
+        const fileName = uri.split('/').pop(); 
+        const fileExtension = fileName?.split('.').pop(); 
+        const mimeType = `image/${fileExtension}`;
+  
+        const blob = await (await fetch(uri)).blob(); // Fetching as blob
+  
+        setImage({
+          uri: uri,
+          name: fileName || "upload.jpg",
+          type: mimeType,
+        }); // Set image properly
+      }
     }
   };
   const [title, setTitle] = useState('');
@@ -45,43 +66,48 @@ export default function MakePost() {
   const [facilities, setFacilities] = useState('');
 
   const uploadData = async () => {
-    const data = {
-      title: title,
-      description: description,
-      location: location,
-      price: price,
-      
-      host_firstname: user.firstname,
-      host_lastname: user.lastname,
-      facilities: facilities,
-      is_available: true,
-      images: image ? [image] : [],
-    };
-
+    const formData = new FormData();
+    
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('location', location);
+    formData.append('price', price);
+    formData.append('facilities', facilities);
+    formData.append('is_available', 'true');
+  
+    if (image) {
+      formData.append('images', image); // Ensure correct format
+    }
+    if (user?.id) {  // Ensure user.id exists
+      formData.append('host_id', user.id.toString()); // Convert to string if needed
+      console.log(user.id);
+    } else {
+      Alert.alert('Error', 'Host ID is missing. Please log in again.');
+      return;
+    }
+  
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/properties/create/', {
+      const response = await fetch('http://192.168.1.76:8000/api/properties/create/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Token ${token}`, // Ensure "Token" prefix
+          Authorization: `Token ${token}`,
         },
-        body: JSON.stringify(data),
-        
+        body: formData,
       });
-
+  
       if (response.ok) {
         const result = await response.json();
         Alert.alert('Success', 'Data uploaded successfully!');
         console.log(result);
       } else {
-        throw new Error('Failed to upload data');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload data');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to upload data.');
+      Alert.alert('Error', error.message || 'Failed to upload data.');
       console.error(error);
     }
   };
-
   
 
 
@@ -98,7 +124,7 @@ export default function MakePost() {
           {/* <Button title="Pick an image from camera roll" onPress={pickImage} /> */}
          
           {image ? (
-            <Image source={{ uri:image }} style={styles.image} className="rounded-2xl"/>
+            <Image source={{ uri:imageView }} style={styles.image} className="rounded-2xl"/>
           ) : (
             <Image
               source={require("@/assets/images/imagereplace.png")}

@@ -1,9 +1,10 @@
 import Button1 from "@/components/Button1";
 import TextField from "@/components/TextField";
+import useAuthStore from "@/store/authStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Redirect, useRouter } from "expo-router";
 import { useState, useContext } from "react";
-import { AuthContext } from "@/store/authStore";
+//import { AuthContext } from "@/store/authStore";
 import {
   Text,
   View,
@@ -20,9 +21,11 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false); // Loading state
-  const { login } = useContext(AuthContext); // Access AuthContext
+  //const { login } = useContext(AuthContext); // Access AuthContext
   const [passwordVisible, setPasswordVisible] = useState(false);
   const PlaceholderImage = require("@/assets/images/google.png");
+  const { user, isAuthenticated, logout,login } = useAuthStore();
+
 
   const handleLogin = async () => {
     if (!email || !password) {

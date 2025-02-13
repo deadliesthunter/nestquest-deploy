@@ -3,23 +3,26 @@ import { TouchableOpacity } from "react-native";
 import { Text } from 'react-native'
 import { useContext } from 'react';
 import { ThemeContext } from '@/components/theme/ThemContext';
-import { AuthProvider, AuthContext } from '@/store/authStore'; // Ensure correct import path
+import useAuthStore from "@/store/authStore";
+//import { AuthProvider, AuthContext } from '@/store/authStore'; // Ensure correct import path
 
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
+    //<AuthProvider>
       
         <Layout />
      
-    </AuthProvider>
+   // </AuthProvider>
   );
 }
 
 
  function Layout() {
   const { colors } = useContext(ThemeContext);
-    const { isAuthenticated } = useContext(AuthContext); // Use the context pro
+   // const { isAuthenticated } = useContext(AuthContext); // Use the context pro
+   const { user, isAuthenticated, logout } = useAuthStore();
+
     
     if (!isAuthenticated) {
       return <Redirect href="/(auth)/login" />;

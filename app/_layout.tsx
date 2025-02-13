@@ -2,11 +2,20 @@
 import { Redirect, Stack } from "expo-router";
 import "../global.css";
 import { ThemeProvider } from '@/components/theme/ThemContext'; // Fix typo in "ThemeContext"
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { ThemeContext } from '@/components/theme/ThemContext'; // Fix typo in "ThemeContext"
+import useAuthStore from "@/store/authStore"; // Fix typo in "authStore"
+
 
 // Wrap the RootLayout with ThemeProvider
 export default function RootLayout() {
+  const { loading, initializeAuth } = useAuthStore();
+
+  // Initialize authentication state on app startup
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
  
   return (
 

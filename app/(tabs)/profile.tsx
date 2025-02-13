@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import { AuthContext } from "@/store/authStore";
+//import { AuthContext } from "@/store/authStore";
 import { FlatList, GestureHandlerRootView } from "react-native-gesture-handler";
 import ReviewLayout from "@/components/layouts/reviewLayout"
 import PostLayout from "@/components/layouts/postLayout";
@@ -14,10 +14,13 @@ import appartments from "@/assets/data/appartments.json";
 import RoomCard from "@/components/RoomCard";
 import characters  from "@/assets/data/characters.json";
 import Button1 from "@/components/Button1";
+import useAuthStore from "@/store/authStore";
 
 export default function ProfileScreen() {
   const [image, setImage] = useState<string | null>(null);
-  const { user } = useContext(AuthContext);
+  //const { user } = useContext(AuthContext);
+  const { user, isAuthenticated, logout } = useAuthStore();
+
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({

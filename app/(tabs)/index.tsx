@@ -11,7 +11,7 @@ import { ThemeContext } from '@/components/theme/ThemContext';
 
 import { useState, useEffect, useCallback, useMemo, useRef, useContext } from 'react';
 
-const initialPage = 'http://127.0.0.1:8000/api/properties/feed/';
+const initialPage = 'http://192.168.1.76:8000/api/properties/feed/';
 
 export default function Index() {
 
@@ -27,12 +27,13 @@ export default function Index() {
   const fetchPage = async (url: string) => {
     if (loading) {
       return;
-    }
+    } 
 
-    setLoading(true);
+    //setLoading(true);
     const response = await fetch(url);
     const responseJson = await response.json();
-     setItems(responseJson);
+    console.log("fetchPage", responseJson.properties);
+     setItems(responseJson.properties);
   }
 
    /*  setItems((existingItems) => {

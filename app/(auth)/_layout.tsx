@@ -1,17 +1,19 @@
+import useAuthStore from "@/store/authStore";
 import { Redirect, Stack } from "expo-router";
-import { AuthProvider, AuthContext } from "@/store/authStore"; // Adjust the import path as needed
+//import { AuthProvider, AuthContext } from "@/store/authStore"; // Adjust the import path as needed
 import { useContext } from "react";
 
 export default function Authlayout() {
   return (
-    <AuthProvider>
+   // <AuthProvider>
       <AuthWrapper />
-    </AuthProvider>
+   // </AuthProvider>
   );
 }
 
 function AuthWrapper() {
-  const { isAuthenticated } = useContext(AuthContext);
+  //const { isAuthenticated } = useContext(AuthContext);
+  const { user, isAuthenticated, logout } = useAuthStore();
 
   if (isAuthenticated) {
     return <Redirect href="/" />;

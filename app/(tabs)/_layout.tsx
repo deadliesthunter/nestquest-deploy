@@ -4,20 +4,23 @@ import { Tabs, Redirect, Stack } from 'expo-router';
 import TabBar from '@/components/buttomnav/TabBar';
 import "@/global.css";
 import { ThemeProvider, ThemeContext } from '@/components/theme/ThemContext'; // Ensure correct import path
-import { AuthProvider, AuthContext } from '@/store/authStore'; // Ensure correct import path
+import useAuthStore from '@/store/authStore';
+//import { AuthProvider, AuthContext } from '@/store/authStore'; // Ensure correct import path
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
+    //<AuthProvider>
       <ThemeProvider>
         <RootContent />
       </ThemeProvider>
-    </AuthProvider>
+   // </AuthProvider>
   );
 }
 
 function RootContent() {
-  const { isAuthenticated } = useContext(AuthContext); // Use the context properly
+  //const { isAuthenticated } = useContext(AuthContext); // Use the context properly
+  const { user, isAuthenticated, logout } = useAuthStore();
+
   const { colors } = useContext(ThemeContext); // Use the context properly
 
   if (!isAuthenticated) {

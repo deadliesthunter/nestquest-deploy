@@ -4,12 +4,15 @@ import { Button, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemeContext } from '@/components/theme/ThemContext';
 
 import { useContext } from "react";
-import { AuthContext } from "@/store/authStore";
+import useAuthStore from '@/store/authStore';
+//import { AuthContext } from "@/store/authStore";
 
 const ProfileScreen = () => {
   const { colors, toggleTheme } = useContext(ThemeContext);
 
-    const { logout } = useContext(AuthContext);
+   // const { logout } = useContext(AuthContext);
+   const { user, isAuthenticated, logout } = useAuthStore();
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
