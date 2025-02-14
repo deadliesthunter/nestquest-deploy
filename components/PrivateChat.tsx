@@ -1,4 +1,4 @@
-/* 
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -555,9 +555,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#212121",
   },
-}); */
+}); 
 
-import React, { useEffect, useRef } from "react";
+/* import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -810,4 +810,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
   },
-});
+}); */

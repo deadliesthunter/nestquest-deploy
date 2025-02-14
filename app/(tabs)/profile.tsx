@@ -1,6 +1,5 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -10,17 +9,25 @@ import ReviewLayout from "@/components/layouts/reviewLayout"
 import PostLayout from "@/components/layouts/postLayout";
 import reviews from "@/assets/data/reviews.json";
 import appartments from "@/assets/data/appartments.json";
-
-import RoomCard from "@/components/RoomCard";
-import characters  from "@/assets/data/characters.json";
-import Button1 from "@/components/Button1";
+import useUserProfileStore from "@/store/userprofilestore";
 import useAuthStore from "@/store/authStore";
 
+
+
+
 export default function ProfileScreen() {
+
+ 
   const [image, setImage] = useState<string | null>(null);
   //const { user } = useContext(AuthContext);
   const { user, isAuthenticated, logout } = useAuthStore();
 
+  const {posts ,fetchUser,roomprofile}=useUserProfileStore();
+   useEffect(()=>{
+    fetchUser();
+    },[]);
+    
+  console.log("this is from zustand profilee",roomprofile) 
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -124,7 +131,7 @@ export default function ProfileScreen() {
       <GestureHandlerRootView className="flex-1  p-0 mb-3 " >
         <FlatList
         contentContainerClassName="w-200"
-          data={appartments}
+          data={posts.properties}
           horizontal
           //keyExtractor={(_, index) => index.toString()}
           renderItem={({ item }) => <PostLayout data={item}  />}

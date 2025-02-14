@@ -1,8 +1,10 @@
 import { Link } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Image } from "react-native";
+import { Pressable } from "react-native-gesture-handler";
 import { Icon } from "react-native-paper";
 
+import useUserProfileStore from "@/store/userprofilestore";
 
 
 
@@ -11,24 +13,35 @@ import { Icon } from "react-native-paper";
 
 
 export default function PostLayout({data}){
+  const {room,setRoom} = useState({});
+  const{fetchRoom} = useUserProfileStore();
+    const firstImage = data.images && data.images.length > 0
+    ? data.images[0]
+    : "https://via.placeholder.com/300"; // Fallback image URL
+
     return (
-      
-        <View className="bg-white rounded-xl mx-2 my-0 overflow-hidden shadow-lg">
+        <View className="bg-white rounded-xl mx-1.5 my-0 overflow-hidden shadow-lg w-64 ">
+          <Pressable onPress={() => fetchRoom(data)}>
           <Link href={"/pages/roomprofile"}>
+        
           <Image
-            source={{ uri: data.image || "https://example.com/default-profile.jpg" }}
+            source={{ uri: firstImage.image || "https://example.com/default-profile.jpg" }}
             className="w-full h-64"
             resizeMode="cover"
           />
+        
             </Link>
+            </Pressable>
           <View className="p-4">
             <View className="flex-row justify-between items-start">
               <View>
+                 {/* post tittl */}
                 <Text className="text-lg font-semibold text-black">
-                  Bed and breakfast
+                  {data.title}
                 </Text>
+                {/* post description */}
                 <Text className="text-gray-500 mt-1">
-                  Rana's Guest House - 1st floor-...
+                  {data.description}
                 </Text>
               </View>
               <View className="flex-row items-center">

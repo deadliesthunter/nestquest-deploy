@@ -9,7 +9,7 @@ let API_BASE_URL = "";
 if (!Constants.expoConfig?.hostUri) {
   API_BASE_URL = "https://your-production-api.com/api"; // Use a production server in real deployments
 } else {
-  const LOCAL_IP = "192.168.1.76"; // Replace with your local IP
+  const LOCAL_IP = "127.0.0.1"; // Replace with your local IP
   API_BASE_URL =
     Platform.OS === "ios"
       ? `http://${LOCAL_IP}:8000/api` // iOS (Simulator & Device)
@@ -100,3 +100,5 @@ const useAuthStore = create((set, get) => ({
 }));
 
 export default useAuthStore;
+
+
