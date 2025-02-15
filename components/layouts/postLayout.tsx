@@ -1,63 +1,60 @@
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { Icon } from "react-native-paper";
 
 import useUserProfileStore from "@/store/userprofilestore";
 
+export default function PostLayout({ data }) {
+  const { room, setRoom } = useState({});
+  const { fetchRoom } = useUserProfileStore();
+  const firstImage =
+    data.images && data.images.length > 0
+      ? data.images[0]
+      : "https://via.placeholder.com/300"; // Fallback image URL
+      const router = useRouter();
 
+  function handlepostspress() {
+   
+    router.push("/pages/roomprofile");
+  }
 
+  return (
+    <TouchableOpacity
+      onPress={() => {
+        handlepostspress(), fetchRoom(data);
+      }}
+    >
+      <View className="bg-white rounded-xl mx-1.5 my-0 overflow-hidden shadow-lg w-72 ">
+        <Image
+          source={{
+            uri: firstImage.image || "https://example.com/default-profile.jpg",
+          }}
+          className="w-full h-64"
+          resizeMode="cover"
+        />
 
-
-
-
-export default function PostLayout({data}){
-  const {room,setRoom} = useState({});
-  const{fetchRoom} = useUserProfileStore();
-    const firstImage = data.images && data.images.length > 0
-    ? data.images[0]
-    : "https://via.placeholder.com/300"; // Fallback image URL
-
-    return (
-        <View className="bg-white rounded-xl mx-1.5 my-0 overflow-hidden shadow-lg w-64 ">
-          <Pressable onPress={() => fetchRoom(data)}>
-          <Link href={"/pages/roomprofile"}>
-        
-          <Image
-            source={{ uri: firstImage.image || "https://example.com/default-profile.jpg" }}
-            className="w-full h-64"
-            resizeMode="cover"
-          />
-        
-            </Link>
-            </Pressable>
-          <View className="p-4">
-            <View className="flex-row justify-between items-start">
-              <View>
-                 {/* post tittl */}
-                <Text className="text-lg font-semibold text-black">
-                  {data.title}
-                </Text>
-                {/* post description */}
-                <Text className="text-gray-500 mt-1">
-                  {data.description}
-                </Text>
-              </View>
-              <View className="flex-row items-center">
-                <Text className="size-100">★</Text>
-                <Text className="ml-1 font-semibold text-black">5.0</Text>
-              </View>
+        <View className="p-4">
+          <View className="flex-row justify-between items-start">
+            <View>
+              {/* post tittl */}
+              <Text className="text-lg font-semibold text-black">
+                {data.title}
+              </Text>
+              {/* post description */}
+              <Text className="text-gray-500 mt-1">{data.description}</Text>
+            </View>
+            <View className="flex-row items-center">
+              <Text className="size-100">★</Text>
+              <Text className="ml-1 font-semibold text-black">5.0</Text>
             </View>
           </View>
-        
         </View>
-
-       
-      );
-    };
-    
-
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 /* 
     return (

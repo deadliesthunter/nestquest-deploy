@@ -8,18 +8,24 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import  useUserProfileStore  from "@/store/userprofilestore";
 
 const ListingScreen = () => {
+  const { roomprofile } = useUserProfileStore();
+
   const [isReserved, setIsReserved] = useState(false);
   const handleReserve = () => {
     setIsReserved(!isReserved);
   };
+  const iimage= roomprofile.images && roomprofile.images.length>0 ? roomprofile.images[0] : "https://as2.ftcdn.net/v2/jpg/09/03/07/47/1000_F_903074738_gATnSFaQqGQu7qJSAZhJxtjyud8FJjxn.jpg";
+  console.log("Room Profile", roomprofile.images[0].image);
+  console.log("Image", iimage);
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView className="bg-slate-400" style={styles.container}>
       {/* Image Section */}
       <Image
         source={{
-          uri: "https://as2.ftcdn.net/v2/jpg/09/03/07/47/1000_F_903074738_gATnSFaQqGQu7qJSAZhJxtjyud8FJjxn.jpg",
+          uri:iimage.image
         }} // Replace with your image URL
         style={styles.image}
       />
@@ -27,9 +33,9 @@ const ListingScreen = () => {
       {/* Title and Location */}
       <View style={styles.section}>
         <Text style={styles.title}>
-          The Barn - A farm cottage by the horses
+          {roomprofile.title}
         </Text>
-        <Text style={styles.subtitle}>Farm stay in New Delhi, India</Text>
+        <Text style={styles.subtitle}>{roomprofile.location}</Text>
         <View style={styles.rating}>
           <FontAwesome name="star" size={16} color="#FFD700" />
           <Text style={styles.ratingText}>4.85 · 154 reviews</Text>
@@ -38,7 +44,8 @@ const ListingScreen = () => {
 
       {/* Host Info */}
       <View style={styles.section}>
-        <Text style={styles.hostedBy}>Hosted by Jyotdeep (Sheena)</Text>
+
+        <Text className='bg-slate-300'  style={styles.hostedBy} >Hosted by {roomprofile.host.firstname} {roomprofile.host.lastname}</Text>
         <Text style={styles.subText}>Superhost · 9 years hosting</Text>
       </View>
 

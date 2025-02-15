@@ -87,7 +87,7 @@ export default function MakePost() {
     }
   
     try {
-      const response = await fetch('http://192.168.1.76:8000/api/properties/create/', {
+      const response = await fetch('http://127.0.0.1:8000/api/properties/create/', {
         method: 'POST',
         headers: {
           Authorization: `Token ${token}`,
