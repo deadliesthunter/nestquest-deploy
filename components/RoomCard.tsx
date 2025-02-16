@@ -9,10 +9,12 @@ import {
   SafeAreaView,
 } from "react-native";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link,useRouter } from "expo-router";
 import { Character } from "@/assets/types";
 import { ThemeContext } from "@/components/theme/ThemContext";
 import { useContext } from "react";
+import useUserProfileStore from "@/store/userprofilestore";
+
 
 type DayListItem = {
   day: number;
@@ -21,6 +23,15 @@ type CharacterListItem = {
   character: Character;
 };
 const RoomCard = ({ character }: CharacterListItem) => {
+
+
+  const { fetchRoom } = useUserProfileStore();
+
+  const router = useRouter();
+  function handlepostspress() {
+    router.push("/pages/roomprofile");
+  }
+
   const firstImage = character.images && character.images.length > 0
   ? character.images[0]
   : "https://via.placeholder.com/300"; // Fallback image URL
@@ -31,8 +42,10 @@ const RoomCard = ({ character }: CharacterListItem) => {
   return (
     <SafeAreaView className="pb-10">
       <View style={{ backgroundColor: colors.background }}>
-        <Link href={`/pages/roomprofile`} asChild>
-          <Pressable
+       
+          <Pressable onPress={() => {
+            handlepostspress(), fetchRoom(character);
+          }}
             style={styles.box}
             className="pt-2 pb-0 pl-4 pr-4 border-2 border-slate-200 rounded-2xl">
 
@@ -50,7 +63,7 @@ const RoomCard = ({ character }: CharacterListItem) => {
         </TouchableOpacity>
 
             </View>
-            <View style={styles.details}>
+            <View  style={styles.details}>
               <View style={styles.footer}>
                 <Text style={styles.name}>{character.title}</Text>
                 <Text style={styles.rating} className="text-black text-base">
@@ -65,7 +78,7 @@ const RoomCard = ({ character }: CharacterListItem) => {
 
             {/* <Link href={'/day/day1'}>to user</Link> */}
           </Pressable>
-        </Link>
+       
       </View>
     </SafeAreaView>
   );

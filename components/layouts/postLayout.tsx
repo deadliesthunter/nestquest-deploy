@@ -7,7 +7,7 @@ import { Icon } from "react-native-paper";
 import useUserProfileStore from "@/store/userprofilestore";
 
 export default function PostLayout({ data }) {
-  const { room, setRoom } = useState({});
+  
   const { fetchRoom } = useUserProfileStore();
   const firstImage =
     data.images && data.images.length > 0
@@ -16,7 +16,6 @@ export default function PostLayout({ data }) {
       const router = useRouter();
 
   function handlepostspress() {
-   
     router.push("/pages/roomprofile");
   }
 

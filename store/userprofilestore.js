@@ -8,7 +8,7 @@ let API_BASE_URL = "";
 
 // Determine API base URL based on environment
 if (!Constants.expoConfig?.hostUri) {
-  API_BASE_URL = "https://your-production-api.com/api"; // Use production API in deployments
+  API_BASE_URL = "http://127.0.0.1:8000/api"; // Use production API in deployments
 } else {
   const LOCAL_IP = "127.0.0.1"; // Replace with your local IP
   API_BASE_URL =

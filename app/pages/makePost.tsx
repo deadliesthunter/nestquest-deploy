@@ -9,28 +9,56 @@ import {
   ScrollView,
   Button,
   Alert,
+  FlatList,
 } from "react-native";
-import * as FileSystem from 'expo-file-system';
-import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from "expo-file-system";
+import * as ImagePicker from "expo-image-picker";
 
-
-
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 import useAuthStore from "@/store/authStore";
+import {
+  Config,
+  openPicker,
+} from "@baronha/react-native-multiple-image-picker";
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 export default function MakePost() {
-  const { user, isAuthenticated, logout,token } = useAuthStore();
-
+  const { user, isAuthenticated, logout, token } = useAuthStore();
 
   const [image, setImage] = useState<string | null>(null);
   const [imageView, setImageView] = useState<string | null>(null);
 
-  
-  const pickImage = async () => {
+  const config: Config = {
+    maxSelect: 10,
+    maxVideo: 10,
+    primaryColor: "#FB9300",
+    backgroundDark: "#2f2f2f",
+    numberOfColumn: 4,
+    mediaType: "all",
+    selectBoxStyle: "number",
+    selectMode: "multiple",
+    language: "system",
+    theme: "dark",
+    isHiddenOriginalButton: false,
+  };
+
+  const onPicker = async () => {
+    try {
+      const response = await openPicker(config);
+      setImageView(response);
+      console.log("this is selected images", response);
+    } catch (e) {
+      // catch error for multiple image picker
+      console.log(e);
+    }
+  };
+
+  /*   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
+      allowsMultipleSelection: true,
       aspect: [4, 3],
       quality: 1,
     });
@@ -56,60 +84,62 @@ export default function MakePost() {
         }); // Set image properly
       }
     }
-  };
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
-  const [price, setPrice] = useState('');
-  const [hostFirstname, setHostFirstname] = useState('');
-  const [hostLastname, setHostLastname] = useState('');
-  const [facilities, setFacilities] = useState('');
+  }; */
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [price, setPrice] = useState("");
+  const [hostFirstname, setHostFirstname] = useState("");
+  const [hostLastname, setHostLastname] = useState("");
+  const [facilities, setFacilities] = useState("");
 
   const uploadData = async () => {
     const formData = new FormData();
-    
-    formData.append('title', title);
-    formData.append('description', description);
-    formData.append('location', location);
-    formData.append('price', price);
-    formData.append('facilities', facilities);
-    formData.append('is_available', 'true');
-  
+
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("location", location);
+    formData.append("price", price);
+    formData.append("facilities", facilities);
+    formData.append("is_available", "true");
+
     if (image) {
-      formData.append('images', image); // Ensure correct format
+      formData.append("images", image); // Ensure correct format
     }
-    if (user?.id) {  // Ensure user.id exists
-      formData.append('host_id', user.id.toString()); // Convert to string if needed
+    if (user?.id) {
+      // Ensure user.id exists
+      formData.append("host_id", user.id.toString()); // Convert to string if needed
       console.log(user.id);
     } else {
-      Alert.alert('Error', 'Host ID is missing. Please log in again.');
+      Alert.alert("Error", "Host ID is missing. Please log in again.");
       return;
     }
-  
+
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/properties/create/', {
-        method: 'POST',
-        headers: {
-          Authorization: `Token ${token}`,
-        },
-        body: formData,
-      });
-  
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/properties/create/",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+          body: formData,
+        }
+      );
+
       if (response.ok) {
         const result = await response.json();
-        Alert.alert('Success', 'Data uploaded successfully!');
+        Alert.alert("Success", "Data uploaded successfully!");
         console.log(result);
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload data');
+        throw new Error(errorData.message || "Failed to upload data");
       }
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to upload data.');
+      Alert.alert("Error", error.message || "Failed to upload data.");
       console.error(error);
     }
   };
-  
-
 
   return (
     <ScrollView className="flex-1 p-4 bg-gray-100 mb-3">
@@ -119,19 +149,42 @@ export default function MakePost() {
         </Text>
 
         {/* image pick */}
-        <View className=" bg-white rounded-2xl p-4 pt-0" >
-        <TouchableOpacity onPress={pickImage}>
-          {/* <Button title="Pick an image from camera roll" onPress={pickImage} /> */}
-         
-          {image ? (
-            <Image source={{ uri:imageView }} style={styles.image} className="rounded-2xl"/>
-          ) : (
-            <Image
-              source={require("@/assets/images/imagereplace.png")}
-              className= "rounded-2xl bg-slate-200 " style={styles.image}
-            />
+        <View className=" bg-slate-300 rounded-2xl p-0 pt-0" style={styles.imagescontainer}>
+          {!imageView?
+        <TouchableOpacity onPress={ onPicker}>
+            {/* <Button title="Pick an image from camera roll" onPress={pickImage} /> */}
+
+          
+              <Image
+                source={require("@/assets/images/imagereplace.png")}
+                className="rounded-2xl bg-slate-200 "
+                style={styles.image}
+              />
+  
+          </TouchableOpacity>
+          :    <FlatList 
+          
+          data={imageView}
+          keyExtractor={(item, index) => index.toString()}
+          numColumns={3}
+        scrollEnabled
+        
+          renderItem={({ item }) => (
+            <View className="pl-1">
+              <Image
+              className="rounded-2xl bg-slate-200"
+                source={{ uri: item.path }} // Ensure 'path' is the correct property
+                style={{ width: 105, height: 105, margin: 3 }}
+              />
+            </View>
           )}
+        />}
+        <View className="absolute bottom-0 right-0 pb-1 pr-1">
+          <TouchableOpacity onPress={onPicker}>
+        <AntDesign name="plussquareo" size={70} color="gray" />
         </TouchableOpacity>
+        </View>
+      
         </View>
 
         {/* Title */}
@@ -141,8 +194,9 @@ export default function MakePost() {
             className="mt-2 p-3 border border-gray-300 rounded-lg"
             placeholder="Enter title (e.g., Bootleg Portal Chemist Rick)"
             value={title}
-            onChangeText={setTitle} 
+            onChangeText={setTitle}
           />
+          
         </View>
 
         {/* Distance */}
@@ -210,9 +264,16 @@ const styles = StyleSheet.create({
     height: 200,
   },
   image: {
-   aspectRatio:1/1,
-   width: 300,
-   height: 300,
-   
+    aspectRatio: 1 / 1,
+    width: 300,
+    height: 300,
   },
+  imagescontainer: {
+    flex: 1,
+
+    height: 300,
+    width: 350,
+    position: "relative",
+  }
+  ,
 });

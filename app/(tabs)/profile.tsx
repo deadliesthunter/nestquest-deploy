@@ -23,11 +23,13 @@ export default function ProfileScreen() {
   const { user, isAuthenticated, logout } = useAuthStore();
 
   const {posts ,fetchUser,roomprofile}=useUserProfileStore();
+  
    useEffect(()=>{
     fetchUser();
     },[]);
     
   console.log("this is from zustand profilee",roomprofile) 
+  console.log("this is from zustand profilee posts fetch",posts) 
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
