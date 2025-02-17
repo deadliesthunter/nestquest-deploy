@@ -35,7 +35,7 @@ export default function PrivateChat() {
   // State for search and conversation lists
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [myuser_id, setmyuser_id] = useState<string>("");
+  const [myuser_id, setmyuser_id] = useState("");
   const [senderuser_id, setsenderuser_id] = useState("");
   const [conversationsList, setConversationsList] = useState<Conversation[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -90,7 +90,8 @@ export default function PrivateChat() {
   }, [selectedUser, myuser_id]);
 
   useEffect(() => {
-    loadConversationsList();
+    loadConversationsList
+    ();
   }, []);
 
   // Auto-scroll to the latest message in a conversation
@@ -101,7 +102,7 @@ export default function PrivateChat() {
   }, [messages]);
 
   // Load conversation threads (recent conversations)
-  const loadConversationsList = async () => {
+  const loadConversationsList= async () => {
     try {
       const token = await AsyncStorage.getItem("token");
       const baseUrl =
@@ -145,7 +146,7 @@ export default function PrivateChat() {
       );
       if (response.ok) {
         const data = await response.json();
-        const myuserid = await AsyncStorage.getItem("userid");
+        const myuserid =await AsyncStorage.getItem("userid");
         setmyuser_id(myuserid);
 
         setSearchResults(data);
@@ -184,6 +185,7 @@ export default function PrivateChat() {
             sender_id: msg.sender_id,
             timestamp: msg.timestamp,
           }))
+
         );
       }
     } catch (error) {
@@ -192,11 +194,10 @@ export default function PrivateChat() {
   };
 
   // When a user is selected either from search or conversation lists
-  const handleSelectUser = async (user: User) => {
+  const handleSelectUser = (user: User) => {
     setSelectedUser(user);
-    if (user.user_id) {
-      await loadConversation(user.user_id);
-    }
+    console.log("selected user:", user); // Debug log
+    loadConversation(user.user_id);
   };
 
   // Simplified send message handler
@@ -232,11 +233,11 @@ export default function PrivateChat() {
       style={styles.recentItem}
       onPress={() => handleSelectUser(item)}
     >
-      // <Text style={styles.recentName}>{item.sender_name}</Text> 
+     // <Text style={styles.recentName}>{item.sender_name}</Text> 
     </TouchableOpacity>
   );
 
-  const renderConversationList = ({ item }: { item }) => (
+  const renderConversationList = ({ item }: { item}) => (
     <TouchableOpacity
       style={styles.conversationItem}
       onPress={() => handleSelectUser(item)}
@@ -268,10 +269,10 @@ export default function PrivateChat() {
 
 
   const renderMessageItem = ({ item }: { item: Message }) => {
-    const isSent = item.sender_id === myuser_id; // Replace with your authentication logic
+    const isSent =item.sender_id === myuser_id ; // Replace with your authentication logic
 
-    console.log("myuser_id", myuser_id);
-    console.log("from other side myuser_id", senderuser_id);
+console.log("myuser_id",myuser_id);
+console.log("from other side myuser_id",senderuser_id);
     return (
       <View
         style={[
@@ -306,7 +307,7 @@ export default function PrivateChat() {
           <Text style={styles.chatHeaderText}>
             Chat with {selectedUser.firstname}
           </Text>
-          <TouchableOpacity onPress={() => (setSelectedUser(null), setsenderuser_id(""))}>
+          <TouchableOpacity onPress={() => (setSelectedUser(null),setsenderuser_id(""))}>
             <Text style={styles.backButton}>Back</Text>
           </TouchableOpacity>
         </View>
@@ -352,7 +353,8 @@ export default function PrivateChat() {
               fetchUsers(text);
             } else {
               setSearchResults([]);
-              loadConversationsList();
+              loadConversationsList
+              ();
             }
           }}
         />
@@ -367,7 +369,7 @@ export default function PrivateChat() {
         <FlatList
           data={conversationsList}
           renderItem={renderConversationList}
-          // keyExtractor={(item) => item.id.toString()}
+         // keyExtractor={(item) => item.id.toString()}
           ListHeaderComponent={
             <Text style={styles.sectionHeader}>Recent Conversations</Text>
           }
@@ -559,258 +561,3 @@ const styles = StyleSheet.create({
     color: "#212121",
   },
 }); 
-
-/* import React, { useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  TextInput,
-  StyleSheet,
-  Platform,
-  KeyboardAvoidingView,
-} from "react-native";
-import useChatStore from "@/store/chatstore";
-
-export default function PrivateChat() {
-  const {
-    searchQuery,
-    setSearchQuery,
-    searchResults,
-    setSearchResults,
-    conversationsList,
-    selectedUser,
-    setSelectedUser,
-    messages,
-    messageText,
-    setMessageText,
-    ws,
-    loadConversationsList,
-    fetchUsers,
-    loadConversation,
-    handleSendMessage,
-    initializeWebSocket,
-  } = useChatStore();
-
-  const flatListRef = useRef<FlatList>(null);
-
-  useEffect(() => {
-    loadConversationsList();
-    initializeWebSocket();
-  }, []);
-
-  useEffect(() => {
-    setTimeout(() => {
-      if (flatListRef.current) {
-        flatListRef.current.scrollToEnd({ animated: true });
-      }
-    }, 100); // Delay to ensure DOM updates
-  }, [messages]);
-
-  const renderRecentItem = ({ item }: { item: any }) => (
-    <TouchableOpacity onPress={() => handleSelectUser(item)}>
-      <Text>{item.sender_name}</Text>
-    </TouchableOpacity>
-  );
-
-  const renderConversationList = ({ item }: { item: any }) => (
-    <TouchableOpacity onPress={() => handleSelectUser(item)}>
-      <Text className="bg-blue-300">{item.firstname}</Text>
-      <Text>{item.latest_message}</Text>
-      <Text>{item.timestamp}</Text>
-    </TouchableOpacity>
-  );
-
-  const renderUserItem = ({ item }: { item: any }) => (
-    <TouchableOpacity onPress={() => handleSelectUser(item)}>
-      <Text>{item.firstname}</Text>
-      <Text>{item.email}</Text>
-    </TouchableOpacity>
-  );
-
-  const renderMessageItem = ({ item }: { item: any }) => {
-    const isSent = item.sender_id === useChatStore.getState().myuser_id;
-
-    return (
-      <View>
-        {!isSent && <Text>{item.sender}</Text>}
-        <Text>{item.message}</Text>
-        <Text>{item.timestamp}</Text>
-      </View>
-    );
-  };
-
-  const handleSelectUser = (user: any) => {
-    setSelectedUser(user);
-    console.log("selected user:", user.user_id); // Debug log
-    loadConversation(user.user_id);
-  };
-
-  if (selectedUser) {
-    return (
-      <View style={styles.fullConversationContainer}>
-        <View style={styles.chatHeader}>
-          <TouchableOpacity onPress={() => setSelectedUser(null)}>
-            <Text style={styles.backButton}>Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.chatHeaderText}>Chat with {selectedUser.firstname}</Text>
-        </View>
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item, idx) => idx.toString()}
-          renderItem={renderMessageItem}
-          style={styles.messagesList}
-        />
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={messageText}
-            onChangeText={setMessageText}
-            placeholder="Type a message..."
-            style={styles.input}
-          />
-          <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-            <Text style={styles.sendButtonText}>Send</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          value={searchQuery}
-          onChangeText={(text) => {
-            setSearchQuery(text);
-            if (text.trim()) {
-              fetchUsers(text);
-            } else {
-              setSearchResults([]);
-              loadConversationsList();
-            }
-          }}
-          placeholder="Search users..."
-          style={styles.searchInput}
-        />
-      </View>
-      {searchQuery.trim() ? (
-        <FlatList
-          data={searchResults}
-         // keyExtractor={(item) => item.id.toString()}
-          renderItem={renderUserItem}
-        />
-      ) : (
-        // ============================ conversationList render ============================
-        <FlatList
-          data={conversationsList}
-          //keyExtractor={(item) => item.id.toString()}
-          renderItem={renderConversationList}
-          ListHeaderComponent={<Text style={styles.sectionHeader}>Recent Conversations</Text>}
-        />
-      )}
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  fullConversationContainer: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  searchContainer: {
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E0E0E0",
-  },
-  searchInput: {
-    height: 48,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 24,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    color: "#212121",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  sectionHeader: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#9E9E9E",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: "#FAFAFA",
-    textTransform: "uppercase",
-  },
-  chatHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E0E0E0",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  chatHeaderText: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#212121",
-  },
-  backButton: {
-    fontSize: 16,
-    color: "#2196F3",
-    fontWeight: "500",
-  },
-  messagesList: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#E0E0E0",
-  },
-  input: {
-    flex: 1,
-    minHeight: 48,
-    maxHeight: 100,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 24,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    color: "#212121",
-    marginRight: 12,
-  },
-  sendButton: {
-    backgroundColor: "#2196F3",
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 2,
-  },
-  sendButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-}); */
