@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, Image, TouchableOpacity, ScrollView, Modal, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -16,11 +16,9 @@ import useAuthStore from "@/store/authStore";
 
 
 export default function ProfileScreen() {
-
- 
+  const [modalVisible, setModalVisible] = useState(false);
   const [image, setImage] = useState<string | null>(null);
-  //const { user } = useContext(AuthContext);
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, logout,token } = useAuthStore();
 
   const {posts ,fetchUser,roomprofile}=useUserProfileStore();
   
@@ -28,8 +26,12 @@ export default function ProfileScreen() {
     fetchUser();
     },[]);
     
-  console.log("this is from zustand profilee",roomprofile) 
-  console.log("this is from zustand profilee posts fetch",posts) 
+  //console.log("this is from zustand profilee",roomprofile) 
+  //console.log("this is from zustand profilee posts fetch",posts) 
+
+  const [name, setName] = useState(user.firstname);
+  const [lastname, setLastname] = useState(user.lastname);
+  const [description, setDescription] = useState('');
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -44,6 +46,53 @@ export default function ProfileScreen() {
     }
   };
   
+  const handleUpdateProfile = async () => {
+    try {
+      const formData = new FormData();
+      
+      // Append text fields
+      formData.append('firstname', name);
+      formData.append('lastname', lastname);
+      formData.append('description', description);
+      
+      // Append image if exists
+      if (image) {
+        const imageUri = image;
+        const filename = imageUri.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename || '');
+        
+        formData.append('thumbnail', {
+          uri: imageUri,
+          name: filename,
+          type: "image/jpeg",
+        } as any);
+      }
+
+      const response = await fetch('http://127.0.0.1:8000/api/user/detail/', {
+        method: 'post',
+        headers: {
+          'Content-Type': "multipart/form-data",
+          'Authorization': `Token ${token}`,
+          
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
+
+      const data = await response.json();
+      console.log('Profile updated successfully:', data);
+      
+      // Close modal and optionally refresh user data
+      setModalVisible(false);
+      fetchUser(); // Refresh user data
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      // You might want to show an error message to the user
+    }
+  };
 
   return (
     <ScrollView className="flex-1 bg-gray-100 p-4  pb-4 mb-2 ">
@@ -61,32 +110,123 @@ export default function ProfileScreen() {
       />
 
       {/* Profile Section */}
-      <View className=" rounded-2xl bg-white p-6 mb-6 shadow-white flex-row items-center justify-between">
-        {/* Profile Picture */}
-        <View className="items-center mr-4">
-          <View className="w-32 h-32 bg-green-200 rounded-full justify-center items-center overflow-hidden">
-            {image ? (
-              <Image source={{ uri: image }} className="w-full h-full" resizeMode="cover" />
-            ) : (
-              <Text className="text-gray-400 font-semibold">No Image</Text>
-            )}
+      <View className=" rounded-2xl bg-white p-6 mb-6 shadow-white">
+        <View className="flex-row justify-between">
+          {/* Profile Picture */}
+          <View className="items-center">
+            <View className="w-32 h-32 bg-green-200 rounded-full justify-center items-center overflow-hidden">
+              {image ? (
+                <Image source={{ uri: image }} className="w-full h-full" resizeMode="cover" />
+              ) : (
+                <Text className="text-gray-400 font-semibold">No Image</Text>
+              )}
+            </View>
           </View>
-          <TouchableOpacity
-            className="px-1 py-2 rounded-full shadow mt-2"
-            onPress={pickImage}
-          >
-            <Text className="text-slate-600 font-medium">Change Profile</Text>
-          </TouchableOpacity>
+
+          {/* User Info - Pushed to extreme right */}
+          <View className="justify-center items-end pr-4">
+            <Text className="text-xl font-bold text-gray-800 mb-1">
+              {user.firstname} {user.lastname}
+            </Text>
+            <Text className="text-gray-600 text-base">Owner</Text>
+          </View>
         </View>
 
-        {/* User Info */}
-        <View>
-          <Text className="text-lg font-bold text-gray-800 mb-1">
-            {user.firstname} {user.lastname}
-          </Text>
-          <Text className="text-gray-600">Owner</Text>
-        </View>
+        {/* Update Profile Button */}
+        <TouchableOpacity
+          className="bg-slate-100 px-4 py-3 rounded-xl  mt-9 w-full "
+          onPress={() => setModalVisible(true)}
+        >
+          <Text className=" font-medium text-center">Update Profile</Text>
+        </TouchableOpacity>
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50">
+          <View className="bg-white p-6 rounded-2xl w-[90%] max-h-[90%]">
+            {/* Header */}
+            <View className="items-center border-b border-gray-200 pb-4 mb-4">
+              <Text className="text-xl font-bold text-gray-800">Update Profile</Text>
+            </View>
+            
+            {/* Profile Picture Section */}
+            <View className="items-center mb-6">
+              <View className="w-32 h-32 bg-gray-200 rounded-full overflow-hidden mb-3 shadow-sm">
+                {image ? (
+                  <Image source={{ uri: image }} className="w-full h-full" resizeMode="cover" />
+                ) : (
+                  <View className="w-full h-full justify-center items-center">
+                    <Ionicons name="person-outline" size={40} color="#9ca3af" />
+                  </View>
+                )}
+              </View>
+              <TouchableOpacity
+                className="bg-sky-100 px-6 py-2 rounded-full shadow-sm"
+                onPress={pickImage}
+              >
+                <Text className="text-sky-700 font-semibold">Change Photo</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Form Fields */}
+            <ScrollView className="space-y-4" showsVerticalScrollIndicator={false}>
+              <View>
+                <Text className="text-gray-700 font-medium mb-2">Name</Text>
+                <TextInput
+                  className="border border-gray-200 rounded-xl p-3 bg-gray-50"
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Enter your name"
+                />
+              </View>
+
+              <View>
+                <Text className="text-gray-700 font-medium mb-2">Last Name</Text>
+                <TextInput
+                  className="border border-gray-200 rounded-xl p-3 bg-gray-50"
+                  value={lastname}
+                  onChangeText={setLastname}
+                  placeholder="Enter your last name"
+                />
+              </View>
+
+              <View>
+                <Text className="text-gray-700 font-medium mb-2">Description</Text>
+                <TextInput
+                  className="border border-gray-200 rounded-xl p-3 bg-gray-50"
+                  value={description}
+                  onChangeText={setDescription}
+                  placeholder="Tell us about yourself"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+              </View>
+            </ScrollView>
+
+            {/* Action Buttons */}
+            <View className="flex-row space-x-4 mt-6 pt-4 border-t border-gray-200">
+              <TouchableOpacity
+                className="flex-1 bg-gray-100 p-3 rounded-xl"
+                onPress={() => setModalVisible(false)}
+              >
+                <Text className="text-center font-semibold text-gray-600">Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 bg-sky-500 p-3 rounded-xl"
+                onPress={handleUpdateProfile}
+              >
+                <Text className="text-center font-semibold text-white">Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Stats Section */}
       <View className="flex-row justify-evenly rounded-2xl bg-white p-6 mb-6">
@@ -148,16 +288,7 @@ export default function ProfileScreen() {
         />
       </GestureHandlerRootView>
 
-    {/*   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View className="flex-row space-x-4 mb-6">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <View
-              key={i}
-              className="w-48 h-40 bg-gray-400 m-0.5 rounded-lg"
-            ></View>
-          ))}
-        </View>
-      </ScrollView> */}
+   
 
 
   <TouchableOpacity className="w-full" >

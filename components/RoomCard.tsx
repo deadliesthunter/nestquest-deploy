@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Pressable,
   SafeAreaView,
+  FlatList,
 } from "react-native";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { Link,useRouter } from "expo-router";
@@ -50,11 +51,12 @@ const RoomCard = ({ character }: CharacterListItem) => {
             className="pt-2 pb-0 pl-4 pr-4 border-2 border-slate-200 rounded-2xl">
 
               <View className="relative"> 
-            <Image
+                
+             <Image
               source={{ uri: firstImage.image }}
               style={styles.image}
               className="border-gray-200 rounded-3xl"
-            />
+            /> 
               {/* bookmark icon */}
         <TouchableOpacity className="absolute top-2 right-2  p-1  rounded-full shadow-sm" onPress={() => setIsFavorite(!isFavorite)} >
           <Ionicons 

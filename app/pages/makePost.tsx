@@ -22,11 +22,12 @@ import {
   openPicker,
 } from "@baronha/react-native-multiple-image-picker";
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function MakePost() {
   const { user, isAuthenticated, logout, token } = useAuthStore();
 
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<Array<{ uri: string; name: string; type: string }> | null>(null);
   const [imageView, setImageView] = useState<string | null>(null);
 
   const config: Config = {
@@ -47,7 +48,10 @@ export default function MakePost() {
     try {
       const response = await openPicker(config);
       setImageView(response);
-      console.log("this is selected images", response);
+      
+      console.log("this is selected images", response);   
+      processAllFiles();
+     
     } catch (e) {
       // catch error for multiple image picker
       console.log(e);
@@ -85,6 +89,42 @@ export default function MakePost() {
       }
     }
   }; */
+  const processFile = async (uri) => {
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(uri);
+  
+      if (fileInfo.exists) {
+        console.log('File info:', fileInfo);
+        const fileName = uri.split('/').pop(); 
+        const fileExtension = fileName?.split('.').pop(); 
+        const mimeType = `image/${fileExtension}`;
+  
+        const blob = await (await fetch(uri)).blob(); 
+        return {
+          uri: uri,
+          name: fileName || "upload.jpg",
+          type: mimeType,
+        };
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error processing file:", error);
+      return null;
+    }
+  };
+  
+  
+  const processAllFiles = async () => {
+  
+    const filesArray = await Promise.all(imageView.map(item => processFile(item.path)));
+  
+    const validFiles = filesArray.filter(file => file !== null);
+  setImage(validFiles);
+    console.log("the formated omages",image);
+    return validFiles;
+  };
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -103,13 +143,19 @@ export default function MakePost() {
     formData.append("facilities", facilities);
     formData.append("is_available", "true");
 
-    if (image) {
-      formData.append("images", image); // Ensure correct format
-    }
+    if (image && image.length > 0) {
+        image.forEach((file: { uri: string; name: string; type: string }, _index: number) => {
+          formData.append("images", {
+            uri: file.uri,
+            name: file.name,
+            type: file.type,
+          } as any);
+        });
+      }
     if (user?.id) {
       // Ensure user.id exists
       formData.append("host_id", user.id.toString()); // Convert to string if needed
-      console.log(user.id);
+     
     } else {
       Alert.alert("Error", "Host ID is missing. Please log in again.");
       return;
@@ -142,119 +188,141 @@ export default function MakePost() {
   };
 
   return (
-    <ScrollView className="flex-1 p-4 bg-gray-100 mb-3">
-      <View className="p-4 bg-white rounded-lg shadow">
-        <Text className="text-xl font-bold text-gray-800 mb-4">
-          Post's details
-        </Text>
-
-        {/* image pick */}
-        <View className=" bg-slate-300 rounded-2xl p-0 pt-0" style={styles.imagescontainer}>
-          {!imageView?
-        <TouchableOpacity onPress={ onPicker}>
-            {/* <Button title="Pick an image from camera roll" onPress={pickImage} /> */}
-
+    <ScrollView className="flex-1 bg-gray-50">
+      <View className="p-4">
+        {/* Image Section */}
+        <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+          <Text className="text-lg font-semibold text-gray-800 mb-3">
+            Property Images
+          </Text>
           
-              <Image
-                source={require("@/assets/images/imagereplace.png")}
-                className="rounded-2xl bg-slate-200 "
-                style={styles.image}
-              />
-  
-          </TouchableOpacity>
-          :    <FlatList 
-          
-          data={imageView}
-          keyExtractor={(item, index) => index.toString()}
-          numColumns={3}
-        scrollEnabled
-        
-          renderItem={({ item }) => (
-            <View className="pl-1">
-              <Image
-              className="rounded-2xl bg-slate-200"
-                source={{ uri: item.path }} // Ensure 'path' is the correct property
-                style={{ width: 105, height: 105, margin: 3 }}
+          <View className="rounded-xl overflow-hidden h-[200px]">
+            {!imageView ? (
+              <TouchableOpacity 
+                onPress={onPicker}
+                className="w-full h-full bg-gray-100 items-center justify-center"
+              >
+                <AntDesign name="camerao" size={40} color="#9CA3AF" />
+                <Text className="text-gray-500 mt-2">Add photos of your property</Text>
+                <Text className="text-gray-400 text-sm">Up to 10 photos</Text>
+              </TouchableOpacity>
+            ) : (
+              <View className="relative h-full">
+                <GestureHandlerRootView className="h-full">
+                  <FlatList
+                    data={imageView}
+                    keyExtractor={(item, index) => index.toString()}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    renderItem={({ item }) => (
+                      <View className="mr-2">
+                        <Image
+                          source={{ uri: item.path }}
+                          className="w-[180px] h-full rounded-lg"
+                          resizeMode="cover"
+                        />
+                      </View>
+                    )}
+                  />
+                </GestureHandlerRootView>
+                <TouchableOpacity 
+                  onPress={onPicker}
+                  className="absolute bottom-3 right-3 bg-white/90 p-2 rounded-full shadow"
+                >
+                  <AntDesign name="plus" size={24} color="#0EA5E9" />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Property Details Form */}
+        <View className="bg-white rounded-2xl p-4 shadow-sm">
+          <Text className="text-lg font-semibold text-gray-800 mb-4">
+            Property Details
+          </Text>
+
+          <View className="space-y-4">
+            {/* Title Input */}
+            <View>
+              <Text className="text-gray-700 font-medium mb-1">Title</Text>
+              <TextInput
+                className="border border-gray-200 rounded-xl p-3.5 bg-gray-50"
+                placeholder="Enter property title"
+                value={title}
+                onChangeText={setTitle}
               />
             </View>
-          )}
-        />}
-        <View className="absolute bottom-0 right-0 pb-1 pr-1">
-          <TouchableOpacity onPress={onPicker}>
-        <AntDesign name="plussquareo" size={70} color="gray" />
-        </TouchableOpacity>
-        </View>
-      
-        </View>
 
-        {/* Title */}
-        <View className="mb-4">
-          <Text className="text-gray-700 font-semibold">Title</Text>
-          <TextInput
-            className="mt-2 p-3 border border-gray-300 rounded-lg"
-            placeholder="Enter title (e.g., Bootleg Portal Chemist Rick)"
-            value={title}
-            onChangeText={setTitle}
-          />
-          
-        </View>
+            {/* Location Input */}
+            <View>
+              <Text className="text-gray-700 font-medium mb-1">Location</Text>
+              <TextInput
+                className="border border-gray-200 rounded-xl p-3.5 bg-gray-50"
+                placeholder="Enter property location"
+                value={location}
+                onChangeText={setLocation}
+              />
+            </View>
 
-        {/* Distance */}
-        <View className="mb-4">
-          <Text className="text-gray-700 font-semibold">Location</Text>
-          <TextInput
-            className="mt-2 p-3 border border-gray-300 rounded-lg"
-            placeholder="Enter distance (e.g., 2.7 km)"
-            value={location}
-            onChangeText={setLocation}
-          />
-        </View>
+            {/* Description Input */}
+            <View>
+              <Text className="text-gray-700 font-medium mb-1">Description</Text>
+              <TextInput
+                className="border border-gray-200 rounded-xl p-3.5 bg-gray-50"
+                placeholder="Describe your property"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
 
-        {/* Date Range */}
-        <View className="mb-4">
-          <Text className="text-gray-700 font-semibold">Description</Text>
-          <TextInput
-            className="mt-2 p-3 border border-gray-300 rounded-lg"
-            placeholder="Enter date range (e.g., April 3 - 9)"
-            value={description}
-            onChangeText={setDescription}
-          />
-        </View>
-        {/* faciitiees */}
-        <View className="mb-4">
-          <Text className="text-gray-700 font-semibold">Facilities</Text>
-          <TextInput
-            className="mt-2 p-3 border border-gray-300 rounded-lg"
-            placeholder="Enter date range (e.g., April 3 - 9)"
-            value={facilities}
-            onChangeText={setFacilities}
-          />
-        </View>
+            {/* Facilities Input */}
+            <View>
+              <Text className="text-gray-700 font-medium mb-1">Facilities</Text>
+              <TextInput
+                className="border border-gray-200 rounded-xl p-3.5 bg-gray-50"
+                placeholder="List available facilities"
+                value={facilities}
+                onChangeText={setFacilities}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
 
-        {/* Price */}
-        <View className="mb-4">
-          <Text className="text-gray-700 font-semibold">Price</Text>
-          <TextInput
-            className="mt-2 p-3 border border-gray-300 rounded-lg"
-            placeholder="Enter price (e.g., Rs.1100)"
-            keyboardType="numeric"
-            value={price}
-            onChangeText={setPrice}
-          />
-        </View>
+            {/* Price Input */}
+            <View>
+              <Text className="text-gray-700 font-medium mb-1">Price</Text>
+              <View className="relative">
+                <TextInput
+                  className="border border-gray-200 rounded-xl p-3.5 bg-gray-50 pl-8"
+                  placeholder="Enter price"
+                  keyboardType="numeric"
+                  value={price}
+                  onChangeText={setPrice}
+                />
+                <Text className="absolute left-3 top-3.5 text-gray-500">₹</Text>
+              </View>
+            </View>
+          </View>
 
-        {/* Submit Button */}
-        <TouchableOpacity
-          className="bg-blue-600 p-3 rounded-lg"
-          onPress={uploadData}
-        >
-          <Text className="text-center text-white font-bold">Post</Text>
-        </TouchableOpacity>
+          {/* Submit Button */}
+          <TouchableOpacity
+            className="bg-sky-500 mt-6 p-4 rounded-xl shadow-sm active:bg-sky-600"
+            onPress={uploadData}
+          >
+            <Text className="text-center text-white font-semibold text-base">
+              Post Property
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -265,14 +333,14 @@ const styles = StyleSheet.create({
   },
   image: {
     aspectRatio: 1 / 1,
-    width: 300,
-    height: 300,
+    width: 200,
+    height: 200,
   },
   imagescontainer: {
     flex: 1,
-
-    height: 300,
-    width: 350,
+    alignContent:'center',
+    height: 200,
+    width: 352,
     position: "relative",
   }
   ,

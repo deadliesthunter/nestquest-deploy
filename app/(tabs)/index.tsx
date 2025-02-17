@@ -32,7 +32,7 @@ export default function Index() {
     //setLoading(true);
     const response = await fetch(url);
     const responseJson = await response.json();
-    console.log("fetchPage", responseJson.properties);
+    //console.log("fetchPage", responseJson.properties);
      setItems(responseJson.properties);
   }
 

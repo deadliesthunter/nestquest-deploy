@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -36,7 +35,7 @@ export default function PrivateChat() {
   // State for search and conversation lists
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [myuser_id, setmyuser_id] = useState("");
+  const [myuser_id, setmyuser_id] = useState<string>("");
   const [senderuser_id, setsenderuser_id] = useState("");
   const [conversationsList, setConversationsList] = useState<Conversation[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -53,51 +52,45 @@ export default function PrivateChat() {
     }, 100); // Delay to ensure DOM updates
   }, [messages]);
 
-  // Initialize WebSocket for real-time messaging
+  // Modified WebSocket setup
   useEffect(() => {
     const initWebSocket = async () => {
       const token = await AsyncStorage.getItem("token");
-      const baseWsUrl =
-        Platform.OS === "android"
-          ? "ws://10.0.2.2:8000"
-          : "ws://127.0.0.1:8000";
+      const baseWsUrl = Platform.OS === "android" 
+        ? "ws://10.0.2.2:8000" 
+        : "ws://127.0.0.1:8000";
 
-      ws.current = new WebSocket(
-        `${baseWsUrl}/ws/private-chat/?token=${token}`
-      );
-
+      ws.current = new WebSocket(`${baseWsUrl}/ws/private-chat/?token=${token}`);
+      
       ws.current.onopen = () => console.log("WebSocket connected");
+
+      // Separate message handler
       ws.current.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log("Received message:", data);
-        if (selectedUser) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              message: data.message,
-              sender: data.sender_name,
-              timestamp: data.timestamp,
-            },
-          ]);
+        console.log("Received message:", data); // Debug log
+        
+        // Check if this is a received message (not our own)
+        if (data.type === 'chat_message' && data.sender_id !== myuser_id) {
+          setMessages(prevMessages => [...prevMessages, {
+            message: data.message,
+            sender_id: data.sender_id,
+            sender: data.sender_name,
+            timestamp: data.timestamp,
+          }]);
         }
       };
-      ws.current.onerror = (error) => console.error("WebSocket error:", error);
-      ws.current.onclose = () => console.log("WebSocket closed");
     };
 
     initWebSocket();
-
     return () => {
       if (ws.current) {
         ws.current.close();
-        ws.current = null;
       }
     };
-  }, [selectedUser]);
+  }, [selectedUser, myuser_id]);
 
   useEffect(() => {
-    loadConversationsList
-    ();
+    loadConversationsList();
   }, []);
 
   // Auto-scroll to the latest message in a conversation
@@ -108,7 +101,7 @@ export default function PrivateChat() {
   }, [messages]);
 
   // Load conversation threads (recent conversations)
-  const loadConversationsList= async () => {
+  const loadConversationsList = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
       const baseUrl =
@@ -152,7 +145,7 @@ export default function PrivateChat() {
       );
       if (response.ok) {
         const data = await response.json();
-        const myuserid =await AsyncStorage.getItem("userid");
+        const myuserid = await AsyncStorage.getItem("userid");
         setmyuser_id(myuserid);
 
         setSearchResults(data);
@@ -191,7 +184,6 @@ export default function PrivateChat() {
             sender_id: msg.sender_id,
             timestamp: msg.timestamp,
           }))
-
         );
       }
     } catch (error) {
@@ -200,26 +192,38 @@ export default function PrivateChat() {
   };
 
   // When a user is selected either from search or conversation lists
-  const handleSelectUser = (user: User) => {
+  const handleSelectUser = async (user: User) => {
     setSelectedUser(user);
-    console.log("selected user:", user); // Debug log
-    loadConversation(user.user_id);
+    if (user.user_id) {
+      await loadConversation(user.user_id);
+    }
   };
 
-  // Send a message via WebSocket
+  // Simplified send message handler
   const handleSendMessage = () => {
-    if (messageText.trim() && selectedUser) {
-      if (ws.current?.readyState === WebSocket.OPEN) {
-        const payload = {
-          message: messageText,
-          receiver_id: selectedUser.user_id,
-        };
-        ws.current.send(JSON.stringify(payload));
-        setMessageText("");
-      } else {
-        console.warn("WebSocket is not connected, message not sent");
-      }
-    }
+    if (!messageText.trim() || !selectedUser || !ws.current) return;
+
+    // Create message object
+    const newMessage = {
+      type: 'chat_message',
+      message: messageText,
+      sender_id: myuser_id,
+      receiver_id: selectedUser.user_id,
+      sender: "You",
+      timestamp: new Date().toISOString(),
+    };
+
+    // Add to local messages
+    setMessages(prev => [...prev, {
+      message: messageText,
+      sender_id: myuser_id,
+      sender: "You",
+      timestamp: new Date().toISOString(),
+    }]);
+
+    // Send via WebSocket
+    ws.current.send(JSON.stringify(newMessage));
+    setMessageText("");
   };
 
   // Render functions for the different lists
@@ -228,11 +232,11 @@ export default function PrivateChat() {
       style={styles.recentItem}
       onPress={() => handleSelectUser(item)}
     >
-     // <Text style={styles.recentName}>{item.sender_name}</Text> 
+      // <Text style={styles.recentName}>{item.sender_name}</Text> 
     </TouchableOpacity>
   );
 
-  const renderConversationList = ({ item }: { item}) => (
+  const renderConversationList = ({ item }: { item }) => (
     <TouchableOpacity
       style={styles.conversationItem}
       onPress={() => handleSelectUser(item)}
@@ -264,10 +268,10 @@ export default function PrivateChat() {
 
 
   const renderMessageItem = ({ item }: { item: Message }) => {
-    const isSent =item.sender_id === myuser_id ; // Replace with your authentication logic
+    const isSent = item.sender_id === myuser_id; // Replace with your authentication logic
 
-console.log("myuser_id",myuser_id);
-console.log("from other side myuser_id",senderuser_id);
+    console.log("myuser_id", myuser_id);
+    console.log("from other side myuser_id", senderuser_id);
     return (
       <View
         style={[
@@ -302,7 +306,7 @@ console.log("from other side myuser_id",senderuser_id);
           <Text style={styles.chatHeaderText}>
             Chat with {selectedUser.firstname}
           </Text>
-          <TouchableOpacity onPress={() => (setSelectedUser(null),setsenderuser_id(""))}>
+          <TouchableOpacity onPress={() => (setSelectedUser(null), setsenderuser_id(""))}>
             <Text style={styles.backButton}>Back</Text>
           </TouchableOpacity>
         </View>
@@ -348,8 +352,7 @@ console.log("from other side myuser_id",senderuser_id);
               fetchUsers(text);
             } else {
               setSearchResults([]);
-              loadConversationsList
-              ();
+              loadConversationsList();
             }
           }}
         />
@@ -364,7 +367,7 @@ console.log("from other side myuser_id",senderuser_id);
         <FlatList
           data={conversationsList}
           renderItem={renderConversationList}
-         // keyExtractor={(item) => item.id.toString()}
+          // keyExtractor={(item) => item.id.toString()}
           ListHeaderComponent={
             <Text style={styles.sectionHeader}>Recent Conversations</Text>
           }
