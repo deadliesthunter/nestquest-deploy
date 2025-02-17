@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View,Text, Image, FlatList, Button, Alert, Platform } from 'react-native';
 import MultipleImagePicker from '@baronha/react-native-multiple-image-picker';
 import { openPicker, Config } from '@baronha/react-native-multiple-image-picker'
+import MapViewing from './mapviewing';
 
 const ImagePickerScreen = () => {
   const [selectedImages, setSelectedImages] = useState([]);
@@ -37,7 +38,13 @@ const onPicker = async () => {
 
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
+
+    <MapViewing onLocationSelect={() => {}} />
+  );
+};
+
+export default ImagePickerScreen;
+    {/* <View style={{ flex: 1, padding: 20 }}>
       <Button color={'blue'} title="Pick Images" onPress={onPicker} />
       <FlatList
         data={images}
@@ -54,8 +61,4 @@ const onPicker = async () => {
           </View>
         )}
       />
-    </View>
-  );
-};
-
-export default ImagePickerScreen;
+    </View> */}

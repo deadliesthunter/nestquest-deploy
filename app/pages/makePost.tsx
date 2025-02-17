@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
+import MapViewing from "./mapviewing";
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
@@ -23,12 +24,14 @@ import {
 } from "@baronha/react-native-multiple-image-picker";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
+import { router } from "expo-router";
+import { useRouter } from 'expo-router';
 export default function MakePost() {
   const { user, isAuthenticated, logout, token } = useAuthStore();
 
   const [image, setImage] = useState<Array<{ uri: string; name: string; type: string }> | null>(null);
   const [imageView, setImageView] = useState<string | null>(null);
+  const [showMap, setShowMap] = useState(false);
 
   const config: Config = {
     maxSelect: 10,
@@ -58,37 +61,7 @@ export default function MakePost() {
     }
   };
 
-  /*   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      allowsMultipleSelection: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
   
-    if (!result.canceled) {
-      const { uri } = result.assets[0]; 
-      setImageView(uri); 
-  
-      const fileInfo = await FileSystem.getInfoAsync(uri);
-      if (fileInfo.exists) {
-        console.log('File info:', fileInfo);
-  
-        const fileName = uri.split('/').pop(); 
-        const fileExtension = fileName?.split('.').pop(); 
-        const mimeType = `image/${fileExtension}`;
-  
-        const blob = await (await fetch(uri)).blob(); // Fetching as blob
-  
-        setImage({
-          uri: uri,
-          name: fileName || "upload.jpg",
-          type: mimeType,
-        }); // Set image properly
-      }
-    }
-  }; */
   const processFile = async (uri) => {
     try {
       const fileInfo = await FileSystem.getInfoAsync(uri);
@@ -128,6 +101,7 @@ export default function MakePost() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
+  const [geoLocation, setGeoLocation] = useState("");
   const [price, setPrice] = useState("");
   const [hostFirstname, setHostFirstname] = useState("");
   const [hostLastname, setHostLastname] = useState("");
@@ -264,6 +238,22 @@ export default function MakePost() {
                 onChangeText={setLocation}
               />
             </View>
+             {/* GEO-Location Input */}
+             
+        <View>
+          <TouchableOpacity onPress={() => router.push('/pages/mapviewing')}>
+            <Text className="text-gray-700 font-medium mb-1">GEO-Location</Text>
+            <View className="border border-gray-200 rounded-xl p-3.5 bg-gray-50 flex-row items-center justify-between">
+              <TextInput
+                className="flex-1"
+                placeholder="Select location from map"
+                value={geoLocation}
+                editable={false}
+              />
+              <AntDesign name="enviromento" size={20} color="#9CA3AF" />
+            </View>
+          </TouchableOpacity>
+        </View>
 
             {/* Description Input */}
             <View>
@@ -319,6 +309,8 @@ export default function MakePost() {
             </Text>
           </TouchableOpacity>
         </View>
+
+       
       </View>
     </ScrollView>
   );

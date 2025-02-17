@@ -1,16 +1,24 @@
-import { View, Text, StyleSheet,  TouchableOpacity } from 'react-native';
-import { Stack } from 'expo-router';
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { router, Stack } from 'expo-router';
 import apartments from '@/assets/data/appartments.json';
+import ApartmentListItem from '@/components/ApartmentListItem';
+import { SafeAreaView } from 'react-native';
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location'; // Import expo-location
+import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
-import  { useState } from 'react';
 
 type Apartment = (typeof apartments)[0];
 
-export default function MapViewing() {
+export default function AirbnbScreen() {
+  const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [markerPosition, setMarkerPosition] = useState<{ latitude: number; longitude: number } | null>(null); // State for draggable marker position
+  const snapPoints = useMemo(() => [65, '70%'], []);
+  const [webviewkey, setwebviewkey]= useState(0);
 
   // Function to generate Leaflet map HTML
   const getLeafletMapHTML = () => `
@@ -28,9 +36,22 @@ export default function MapViewing() {
       <body>
         <div id="map"></div>
         <script>
-          var map = L.map('map').setView([${userLocation?.latitude || 37.78825}, ${
+          var map = L.map('map',{zoomControl: false}).setView([${userLocation?.latitude || 37.78825}, ${
             userLocation?.longitude || -122.4324
           }], 13); // Default coordinates
+          var zoomControl = L.control.zoom({
+            position: 'topleft', 
+           
+          
+          }).addTo(map);
+
+          // Reposition the zoom controls using JavaScript
+          var zoomControlContainer = document.querySelector('.leaflet-control-zoom');
+          if (zoomControlContainer) {
+            zoomControlContainer.style.marginTop = '50px'; // Lower the zoom controls
+            zoomControlContainer.style.marginLeft = '10px'; // Lower the zoom controls
+          }
+        
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap contributors'
@@ -48,7 +69,20 @@ export default function MapViewing() {
                 .openPopup();`
             : ''}
 
-          
+        
+
+          // Add draggable marker
+          var draggableMarker = L.marker([${markerPosition?.latitude || 37.78825}, ${
+            markerPosition?.longitude || -122.4324
+          }], { draggable: true }).addTo(map);
+          draggableMarker.bindPopup("Drag me!").openPopup();
+
+          // Listen for dragend event to capture new coordinates
+          draggableMarker.on('dragend', function(event) {
+            var marker = event.target;
+            var position = marker.getLatLng();
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'markerMoved', position }));
+          });
         </script>
       </body>
     </html>
@@ -67,12 +101,11 @@ export default function MapViewing() {
       // Fetch the user's current location
       const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       const { latitude, longitude } = location.coords;
-
+      setwebviewkey((prevKey) => prevKey + 1);
       // Update user location state
       setUserLocation({ latitude, longitude });
 
       // Optionally, re-render the map with the new location
-      // You can reload the WebView or use JavaScript injection to update the map dynamically
     } catch (error) {
       console.error('Error fetching location:', error.message);
     }
@@ -86,23 +119,43 @@ export default function MapViewing() {
         {/* Leaflet Map in WebView */}
         <WebView
           style={styles.map}
+          key={webviewkey}
           originWhitelist={['*']}
           source={{ html: getLeafletMapHTML() }}
-       
-          
+          onMessage={(event) => {
+            try {
+              const data = JSON.parse(event.nativeEvent.data);
+
+              // Handle marker drag events
+              if (data.type === 'markerMoved') {
+                const { position } = data;
+                setMarkerPosition(position); // Update marker position state
+                console.log('New Marker Position:', position); // Log the new coordinates
+              } 
+            } catch (error) {
+              console.error('Error parsing message:', error);
+            }
+          }}
           scalesPageToFit={true}
           javaScriptEnabled={true}
           domStorageEnabled={true}
         />
 
         {/* Locate Me Button */}
-        <TouchableOpacity style={styles.locateButton} onPress={locateUser}>
-          <Text style={styles.locateButtonText}><Entypo name="location" size={24} color="green" /></Text>
+        <TouchableOpacity className='m-5 mb-10' style={styles.locateButton} onPress={locateUser}>
+         <Entypo name="location" size={28} color="#ff395c" />
         </TouchableOpacity>
 
        
+            <TouchableOpacity 
+              onPress={() => router.back()}
+              className="absolute bottom-10 right-52 p-2 rounded-full shadow-md"
+            >
+              <AntDesign name="checkcircleo" size={44} color="green" />
+            </TouchableOpacity>
+       
 
-     
+        
       </View>
     </GestureHandlerRootView>
   );
@@ -132,22 +185,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingTop: 10,
+    paddingTop: 20,
   },
   locateButton: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 20,
     right: 20,
-    backgroundColor: '#fff',
+   // backgroundColor: '#FF',
     padding: 10,
     borderRadius: 50,
     elevation: 5,
-    
-
   },
   locateButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-
   },
 });

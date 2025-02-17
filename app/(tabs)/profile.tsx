@@ -275,7 +275,7 @@ export default function ProfileScreen() {
         contentContainerClassName="w-200"
           data={posts.properties}
           horizontal
-          //keyExtractor={(_, index) => index.toString()}
+          keyExtractor={(id, index) => index.toString()}
           renderItem={({ item }) => <PostLayout data={item}  />}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{

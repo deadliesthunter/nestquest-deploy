@@ -24,19 +24,20 @@ const useUserProfileStore = create((set, get) => ({
   roomprofile:{}, 
   loading: false, 
   error: null,
+  UserDetails:{},
+
+
 
   fetchUser: async () => {
     set({ loading: true, error: null }); 
 
     try {
-      
       const token = useAuthStore.getState().token;
       console.log("Token:", token);
-
       if (!token) {
         throw new Error("User is not authenticated!");
       }
-
+      {}
       const response = await fetch(`${API_BASE_URL}/properties/host/`,{
         method: 'GET',
         headers: {

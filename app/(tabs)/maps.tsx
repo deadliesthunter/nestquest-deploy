@@ -15,6 +15,7 @@ type Apartment = (typeof apartments)[0];
 export default function AirbnbScreen() {
   const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [webViewKey, setWebViewKey] = useState(0);
   const snapPoints = useMemo(() => [30, '70%'], []);
 
   // Function to generate Leaflet map HTML
@@ -28,18 +29,36 @@ export default function AirbnbScreen() {
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
         <style>
           body, html, #map { margin: 0; padding: 0; height: 100%; width: 100%; }
+          
+        
+           
+          
         </style>
       </head>
       <body>
         <div id="map"></div>
         <script>
-          var map = L.map('map').setView([${userLocation?.latitude || 37.78825}, ${
+          var map = L.map('map',{zoomControl: false}).setView([${userLocation?.latitude || 37.78825}, ${
             userLocation?.longitude || -122.4324
           }], 13); // Default coordinates
+              var zoomControl = L.control.zoom({
+            position: 'topleft', 
+           
+          
+          }).addTo(map);
+
+          // Reposition the zoom controls using JavaScript
+          var zoomControlContainer = document.querySelector('.leaflet-control-zoom');
+          if (zoomControlContainer) {
+            zoomControlContainer.style.marginTop = '50px'; // Lower the zoom controls
+            zoomControlContainer.style.marginLeft = '10px'; // Lower the zoom controls
+          }
+        
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap contributors'
-          }).addTo(map);
+          }
+            ).addTo(map);
 
           // Add user location marker if available
           ${userLocation
@@ -83,7 +102,7 @@ export default function AirbnbScreen() {
       // Fetch the user's current location
       const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       const { latitude, longitude } = location.coords;
-
+      setWebViewKey((prevKey) => prevKey + 1);
       // Update user location state
       setUserLocation({ latitude, longitude });
 
@@ -94,13 +113,17 @@ export default function AirbnbScreen() {
     }
   };
 
+  
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
 
         {/* Leaflet Map in WebView */}
+        
         <WebView
+          key={webViewKey}
           style={styles.map}
           originWhitelist={['*']}
           source={{ html: getLeafletMapHTML() }}
@@ -108,6 +131,7 @@ export default function AirbnbScreen() {
             try {
               const apartment = JSON.parse(event.nativeEvent.data);
               setSelectedApartment(apartment);
+              setUserLocation(null);
             } catch (error) {
               console.error('Error parsing message:', error);
             }
@@ -118,8 +142,8 @@ export default function AirbnbScreen() {
         />
 
         {/* Locate Me Button */}
-        <TouchableOpacity style={styles.locateButton} onPress={locateUser}>
-          <Text style={styles.locateButtonText}><Entypo name="location" size={24} color="green" /></Text>
+        <TouchableOpacity className='mb-6' style={styles.locateButton} onPress={locateUser}>
+          <Entypo name="location" size={28} color="green" />
         </TouchableOpacity>
 
         {/* Display selected Apartment */}
@@ -179,7 +203,7 @@ const styles = StyleSheet.create({
     right: 20,
     backgroundColor: '#fff',
     padding: 10,
-    borderRadius: 50,
+    borderRadius: 10,
     elevation: 5,
     
 
