@@ -18,18 +18,19 @@ import MapViewing from "./mapviewing";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 import useAuthStore from "@/store/authStore";
-import {
-  Config,
-  openPicker,
-} from "@baronha/react-native-multiple-image-picker";
-import AntDesign from '@expo/vector-icons/AntDesign';
+import { Config } from "@baronha/react-native-multiple-image-picker";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { router } from "expo-router";
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
 export default function MakePost() {
   const { user, isAuthenticated, logout, token } = useAuthStore();
 
-  const [image, setImage] = useState<Array<{ uri: string; name: string; type: string }> | null>(null);
+  const [image, setImage] = useState<Array<{
+    uri: string;
+    name: string;
+    type: string;
+  }> | null>(null);
   const [imageView, setImageView] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
 
@@ -51,28 +52,26 @@ export default function MakePost() {
     try {
       const response = await openPicker(config);
       setImageView(response);
-      
-      console.log("this is selected images", response);   
+
+      console.log("this is selected images", response);
       processAllFiles();
-     
     } catch (e) {
       // catch error for multiple image picker
       console.log(e);
     }
   };
 
-  
   const processFile = async (uri) => {
     try {
       const fileInfo = await FileSystem.getInfoAsync(uri);
-  
+
       if (fileInfo.exists) {
-        console.log('File info:', fileInfo);
-        const fileName = uri.split('/').pop(); 
-        const fileExtension = fileName?.split('.').pop(); 
+        console.log("File info:", fileInfo);
+        const fileName = uri.split("/").pop();
+        const fileExtension = fileName?.split(".").pop();
         const mimeType = `image/${fileExtension}`;
-  
-        const blob = await (await fetch(uri)).blob(); 
+
+        const blob = await (await fetch(uri)).blob();
         return {
           uri: uri,
           name: fileName || "upload.jpg",
@@ -86,15 +85,15 @@ export default function MakePost() {
       return null;
     }
   };
-  
-  
+
   const processAllFiles = async () => {
-  
-    const filesArray = await Promise.all(imageView.map(item => processFile(item.path)));
-  
-    const validFiles = filesArray.filter(file => file !== null);
-  setImage(validFiles);
-    console.log("the formated omages",image);
+    const filesArray = await Promise.all(
+      imageView.map((item) => processFile(item.path))
+    );
+
+    const validFiles = filesArray.filter((file) => file !== null);
+    setImage(validFiles);
+    console.log("the formated omages", image);
     return validFiles;
   };
 
@@ -118,18 +117,19 @@ export default function MakePost() {
     formData.append("is_available", "true");
 
     if (image && image.length > 0) {
-        image.forEach((file: { uri: string; name: string; type: string }, _index: number) => {
+      image.forEach(
+        (file: { uri: string; name: string; type: string }, _index: number) => {
           formData.append("images", {
             uri: file.uri,
             name: file.name,
             type: file.type,
           } as any);
-        });
-      }
+        }
+      );
+    }
     if (user?.id) {
       // Ensure user.id exists
       formData.append("host_id", user.id.toString()); // Convert to string if needed
-     
     } else {
       Alert.alert("Error", "Host ID is missing. Please log in again.");
       return;
@@ -169,15 +169,17 @@ export default function MakePost() {
           <Text className="text-lg font-semibold text-gray-800 mb-3">
             Property Images
           </Text>
-          
+
           <View className="rounded-xl overflow-hidden h-[200px]">
             {!imageView ? (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={onPicker}
                 className="w-full h-full bg-gray-100 items-center justify-center"
               >
                 <AntDesign name="camerao" size={40} color="#9CA3AF" />
-                <Text className="text-gray-500 mt-2">Add photos of your property</Text>
+                <Text className="text-gray-500 mt-2">
+                  Add photos of your property
+                </Text>
                 <Text className="text-gray-400 text-sm">Up to 10 photos</Text>
               </TouchableOpacity>
             ) : (
@@ -199,7 +201,7 @@ export default function MakePost() {
                     )}
                   />
                 </GestureHandlerRootView>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={onPicker}
                   className="absolute bottom-3 right-3 bg-white/90 p-2 rounded-full shadow"
                 >
@@ -238,26 +240,32 @@ export default function MakePost() {
                 onChangeText={setLocation}
               />
             </View>
-             {/* GEO-Location Input */}
-             
-        <View>
-          <TouchableOpacity onPress={() => router.push('/pages/mapviewing')}>
-            <Text className="text-gray-700 font-medium mb-1">GEO-Location</Text>
-            <View className="border border-gray-200 rounded-xl p-3.5 bg-gray-50 flex-row items-center justify-between">
-              <TextInput
-                className="flex-1"
-                placeholder="Select location from map"
-                value={geoLocation}
-                editable={false}
-              />
-              <AntDesign name="enviromento" size={20} color="#9CA3AF" />
+            {/* GEO-Location Input */}
+
+            <View>
+              <TouchableOpacity
+                onPress={() => router.push("/pages/mapviewing")}
+              >
+                <Text className="text-gray-700 font-medium mb-1">
+                  GEO-Location
+                </Text>
+                <View className="border border-gray-200 rounded-xl p-3.5 bg-gray-50 flex-row items-center justify-between">
+                  <TextInput
+                    className="flex-1"
+                    placeholder="Select location from map"
+                    value={geoLocation}
+                    editable={false}
+                  />
+                  <AntDesign name="enviromento" size={20} color="#9CA3AF" />
+                </View>
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        </View>
 
             {/* Description Input */}
             <View>
-              <Text className="text-gray-700 font-medium mb-1">Description</Text>
+              <Text className="text-gray-700 font-medium mb-1">
+                Description
+              </Text>
               <TextInput
                 className="border border-gray-200 rounded-xl p-3.5 bg-gray-50"
                 placeholder="Describe your property"
@@ -309,8 +317,6 @@ export default function MakePost() {
             </Text>
           </TouchableOpacity>
         </View>
-
-       
       </View>
     </ScrollView>
   );
@@ -330,10 +336,9 @@ const styles = StyleSheet.create({
   },
   imagescontainer: {
     flex: 1,
-    alignContent:'center',
+    alignContent: "center",
     height: 200,
     width: 352,
     position: "relative",
-  }
-  ,
+  },
 });

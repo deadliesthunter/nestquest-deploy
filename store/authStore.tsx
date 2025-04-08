@@ -1,4 +1,4 @@
-import {create} from "zustand";
+import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
@@ -6,15 +6,9 @@ import Constants from "expo-constants";
 let API_BASE_URL = "";
 
 // Determine API base URL based on environment
-if (!Constants.expoConfig?.hostUri) {
-  API_BASE_URL = "http://192.168.1.83:8000/api"; // Use a production server in real deployments
-} else {
-  const LOCAL_IP = "192.168.1.83"; // Replace with your local IP
-  API_BASE_URL =''
-    Platform.OS === "ios"
-      ? `http://${LOCAL_IP}:8000/api` // iOS (Simulator & Device)
-      : `http://${LOCAL_IP}:8000/api`; // Android (Emulator & Device)
-}
+
+const LOCAL_IP = "127.0.0.1"; // Replace with your local IP
+API_BASE_URL = "http://127.0.0.1:8000/api"; // Android (Emulator & Device)
 
 export { API_BASE_URL };
 interface AuthStore {
@@ -100,5 +94,3 @@ const useAuthStore = create((set, get) => ({
 }));
 
 export default useAuthStore;
-
-
