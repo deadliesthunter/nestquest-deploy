@@ -204,3 +204,8 @@ DEFAULT_FROM_EMAIL = 'noreply@nestquest.com'
 if os.environ.get('RENDER'):
     GDAL_LIBRARY_PATH = '/usr/lib/libgdal.so'
     GEOS_LIBRARY_PATH = '/usr/lib/libgeos_c.so'
+
+    # Add to the end of your settings.py file
+
+# Import GDAL settings explicitly, overriding any previous values
+from .gdal_settings import *
