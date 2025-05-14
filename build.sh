@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-# build.sh
 
-# Install GDAL dependencies (Ubuntu-based Render environment)
-sudo apt-get update
-sudo apt-get install -y binutils libproj-dev gdal-bin python3-gdal
+# Exit on error
+set -o errexit
+
+# Install GDAL dependencies 
+apt-get update
+apt-get install -y binutils libproj-dev gdal-bin python3-gdal
 
 # Install Python dependencies
+pip install --upgrade pip
 pip install -r requirements.txt
+
+# Run collectstatic if needed
+# python manage.py collectstatic --noinput
