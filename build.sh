@@ -9,9 +9,9 @@ apt-get install -y \
     gdal-bin \
     libgdal-dev \
     python3-gdal \
-    libgeos-dev \
-    libgdal-dev
+    libgeos-dev 
 
+apt-get -y install libgdal-dev
 # Explicitly set GDAL paths for Linux
 export GDAL_LIBRARY_PATH=/usr/lib/libgdal.so
 export GEOS_LIBRARY_PATH=/usr/lib/libgeos_c.so
