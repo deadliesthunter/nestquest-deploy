@@ -94,6 +94,7 @@ DATABASES = {
 
 # Add this after your existing DATABASES configuration
 import dj_database_url
+import os
 database_url = os.environ.get('DATABASE_URL')
 if database_url:
     DATABASES['default'] = dj_database_url.config(
@@ -197,7 +198,7 @@ DEFAULT_FROM_EMAIL = 'noreply@nestquest.com'
 #EMAIL_HOST_PASSWORD ='Quester@123'
 
 # Add at the bottom of your file
-import os
+
 
 # Force Linux paths on Render
 if os.environ.get('RENDER'):
