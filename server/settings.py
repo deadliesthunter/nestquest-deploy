@@ -198,14 +198,8 @@ DEFAULT_FROM_EMAIL = 'noreply@nestquest.com'
 
 # Add at the bottom of your file
 import os
-try:
-    from .gdal_settings import *
-except ImportError:
-    # Fallback for GDAL library paths
-    import platform
-    if platform.system() != 'Darwin':  # Not macOS
-        GDAL_LIBRARY_PATH = '/usr/lib/libgdal.so'
-        GEOS_LIBRARY_PATH = '/usr/lib/libgeos_c.so'
-    else:
-        GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
-        GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
+
+# Force Linux paths on Render
+if os.environ.get('RENDER'):
+    GDAL_LIBRARY_PATH = '/usr/lib/libgdal.so'
+    GEOS_LIBRARY_PATH = '/usr/lib/libgeos_c.so'
