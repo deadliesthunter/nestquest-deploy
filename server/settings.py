@@ -184,3 +184,11 @@ DEFAULT_FROM_EMAIL = 'noreply@nestquest.com'
 #EMAIL_USE_TLS = True
 #EMAIL_HOST_USER ='questnest142@gmail.com'
 #EMAIL_HOST_PASSWORD ='Quester@123'
+
+# Add to settings.py
+import os
+
+# Required for Render
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
