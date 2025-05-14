@@ -46,13 +46,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # Move this up
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "server.urls"
@@ -91,6 +91,17 @@ DATABASES = {
         "PORT": "5432",
     }
 }
+
+# Add this after your existing DATABASES configuration
+import dj_database_url
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    DATABASES['default'] = dj_database_url.config(
+        default=database_url,
+        conn_max_age=600,
+        ssl_require=True,
+        engine='django.contrib.gis.db.backends.postgis'
+    )
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -185,10 +196,16 @@ DEFAULT_FROM_EMAIL = 'noreply@nestquest.com'
 #EMAIL_HOST_USER ='questnest142@gmail.com'
 #EMAIL_HOST_PASSWORD ='Quester@123'
 
-# Add to settings.py
+# Add at the bottom of your file
 import os
-
-# Required for Render
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+try:
+    from .gdal_settings import *
+except ImportError:
+    # Fallback for GDAL library paths
+    import platform
+    if platform.system() != 'Darwin':  # Not macOS
+        GDAL_LIBRARY_PATH = '/usr/lib/libgdal.so'
+        GEOS_LIBRARY_PATH = '/usr/lib/libgeos_c.so'
+    else:
+        GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
+        GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'

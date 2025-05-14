@@ -2,11 +2,14 @@ services:
   - type: web
     name: nestquest
     env: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: ./run.sh
+    buildCommand: ./build.sh
+    startCommand: gunicorn server.wsgi:application --bind=0.0.0.0:$PORT --workers=4
     envVars:
-      - key: PORT
-        value: 8000
+      - key: RENDER
+        value: "true"
       - key: PYTHON_VERSION
-        value: 3.12.0
+        value: "3.11"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nestquest-db
+          property: connectionString
