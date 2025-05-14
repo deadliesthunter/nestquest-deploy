@@ -34,5 +34,3 @@ django_rest_passwordreset
 psycopg
 dj-database-url==2.1.0
 
-
-GDAL==3.6.4
