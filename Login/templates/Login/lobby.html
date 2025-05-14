@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>lobby</title>
+    <link rel="stylesheet" />
+  </head>
+  <body>
+    <h1>Let's chat</h1>
+    <form id="form">
+      <input type="text" name="message" />
+    </form>
+    <div id="message"></div>
+    <script type="text/javascript">
+      let url = `ws://${window.location.host}/ws/socket-server/`;
+      const chatSocket = new WebSocket(url);
+
+      chatSocket.onopen = function (e) {
+        console.log("WebSocket connection established");
+      };
+
+      chatSocket.onmessage = function (e) {
+        let data = JSON.parse(e.data);
+        console.log("Data received:", data);
+        if (data.message) {
+          let messageDiv = document.getElementById("message");
+          messageDiv.insertAdjacentHTML(
+            "beforeend",
+            `<div><p>${data.message}</p></div>`
+          );
+        } else {
+          console.error("Received data does not contain 'message' key:", data);
+        }
+      };
+
+      chatSocket.onclose = function (e) {
+        console.log("WebSocket connection closed");
+      };
+
+      chatSocket.onerror = function (e) {
+        console.error("WebSocket error:", e);
+      };
+
+      let form = document.getElementById("form");
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        let message = e.target.message.value;
+        if (chatSocket.readyState === WebSocket.OPEN) {
+          chatSocket.send(JSON.stringify({ message: message }));
+          form.reset();
+        } else {
+          console.error(
+            "WebSocket is not open. Ready state:",
+            chatSocket.readyState
+          );
+        }
+      });
+    </script>
+  </body>
+</html>
