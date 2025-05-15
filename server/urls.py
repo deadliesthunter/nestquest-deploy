@@ -25,6 +25,7 @@ def home_view(request):
     return HttpResponse("Hello, this is the homepage!")
 
 urlpatterns = [
+    path("", home_view, name="home"),  # Add this line for the homepage
     path("admin/", admin.site.urls),
     path("api/", include("Login.api.urls")),
     path("chat/", include("Login.urls")),
