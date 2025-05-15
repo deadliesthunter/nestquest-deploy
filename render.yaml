@@ -2,7 +2,10 @@ services:
   - type: web
     name: nestquest
     env: python
-    buildCommand: ./build.sh
+    buildCommand: |
+      ./build.sh
+      python manage.py makemigrations  # Generate migration files
+      python manage.py migrate
     startCommand: gunicorn server.wsgi:application --bind=0.0.0.0:$PORT --workers=4
     envVars:
       - key: RENDER
