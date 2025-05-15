@@ -84,10 +84,10 @@ ASGI_APPLICATION = "server.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",  # Fixed the quotes here
-        "NAME": "nestquest",
-        "USER": "postgres",
-        "PASSWORD": "mercury",
-        "HOST": "127.0.0.1",
+        "NAME": "nestquest-services",
+        "USER": "nestquest_halt_user",
+        "PASSWORD": "0hGzxQTOOFrUS7gyRSMyz7oelJFBpCfi",
+        "HOST": "dpg-d0ipooje5dus739rpao0-a",
         "PORT": "5432",
     }
 }
