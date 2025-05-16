@@ -93,7 +93,6 @@ DATABASES = {
   }
 }
 
-# Add this after your existing DATABASES configuration
 import dj_database_url
 database_url = os.environ.get('DATABASE_URL')
 if database_url:
