@@ -85,7 +85,7 @@ ASGI_APPLICATION = "server.asgi.application"
 import os
 import dj_database_url
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = "postgresql://nestquest_halt_user:0hGzxQTOOFrUS7gyRSMyz7oelJFBpCfi@dpg-d0ipooje5dus739rpao0-a.region.render.com:5432/nestquest_halt"
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set")
 
