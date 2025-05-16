@@ -91,29 +91,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 RENDER = os.environ.get("RENDER") == "true"
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if RENDER and not DATABASE_URL:
-    # on Render, we require it
-    raise RuntimeError("DATABASE_URL is not set in envVars!")
-
-if DATABASE_URL:
-    # production / hosted
-    DATABASES = {
-      "default": dj_database_url.config(
-          default=DATABASE_URL,
-          conn_max_age=600,
-          ssl_require=True,
-          engine="django.contrib.gis.db.backends.postgis",
-      )
-    }
+if RENDER:
+    if not DATABASE_URL:
+        print("Warning: DATABASE_URL is not set in environment variables. Falling back to SQLite for debugging.")
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
+    else:
+        DATABASES = {
+            "default": dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                ssl_require=True,
+                engine="django.contrib.gis.db.backends.postgis",
+            )
+        }
 else:
-    # local development fallback
     DATABASES = {
-      "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-      }
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
