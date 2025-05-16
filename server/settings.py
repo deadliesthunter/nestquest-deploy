@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -82,19 +83,18 @@ ASGI_APPLICATION = "server.asgi.application"
 #for geolocation b='brew install postgis'
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",  # Fixed the quotes here
-        "NAME": "nestquest_halt",
-        "USER": "nestquest_halt_user",
-        "PASSWORD": "0hGzxQTOOFrUS7gyRSMyz7oelJFBpCfi",
-        "HOST": "dpg-d0ipooje5dus739rpao0-a",
-        "PORT": "5432",
-    }
+  "default": {
+    "ENGINE": os.getenv("DB_ENGINE"),
+    "NAME": os.getenv("DB_NAME"),
+    "USER": os.getenv("DB_USER"),
+    "PASSWORD": os.getenv("DB_PASSWORD"),
+    "HOST": os.getenv("DB_HOST"),
+    "PORT": os.getenv("DB_PORT", "5432"),
+  }
 }
 
 # Add this after your existing DATABASES configuration
 import dj_database_url
-import os
 database_url = os.environ.get('DATABASE_URL')
 if database_url:
     DATABASES['default'] = dj_database_url.config(
