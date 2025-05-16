@@ -84,19 +84,35 @@ ASGI_APPLICATION = "server.asgi.application"
 
 import os
 import dj_database_url
+from pathlib import Path
 
-DATABASE_URL = "postgresql://nestquest_halt_user:0hGzxQTOOFrUS7gyRSMyz7oelJFBpCfi@dpg-d0ipooje5dus739rpao0-a.region.render.com:5432/nestquest_halt"
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL is not set")
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=True,
-        engine="django.contrib.gis.db.backends.postgis",
-    )
-}
+RENDER = os.environ.get("RENDER") == "true"
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if RENDER and not DATABASE_URL:
+    # on Render, we require it
+    raise RuntimeError("DATABASE_URL is not set in envVars!")
+
+if DATABASE_URL:
+    # production / hosted
+    DATABASES = {
+      "default": dj_database_url.config(
+          default=DATABASE_URL,
+          conn_max_age=600,
+          ssl_require=True,
+          engine="django.contrib.gis.db.backends.postgis",
+      )
+    }
+else:
+    # local development fallback
+    DATABASES = {
+      "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+      }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
