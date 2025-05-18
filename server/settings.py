@@ -94,17 +94,12 @@ if GEOS_LIBRARY_PATH:
 # DATABASE CONFIG
 if os.getenv("RENDER") == "true":
     DATABASES = {
-        "default": {
-            "ENGINE": os.getenv("DB_ENGINE", "django.contrib.gis.db.backends.postgis"),
-            "NAME": os.getenv("DB_NAME"),
-            "USER": os.getenv("DB_USER"),
-            "PASSWORD": os.getenv("DB_PASSWORD"),
-            "HOST": os.getenv("DB_HOST"),
-            "PORT": os.getenv("DB_PORT", "5432"),
-            # if you need SSL or conn_max_age, you can still add them here:
-            "CONN_MAX_AGE": 600,
-            "OPTIONS": {"sslmode": "require"},
-        }
+        "default": dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True,
+            engine="django.contrib.gis.db.backends.postgis",
+        )
     }
 else:
     DATABASES = {
