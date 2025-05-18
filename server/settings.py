@@ -82,33 +82,35 @@ ASGI_APPLICATION = "server.asgi.application"
 
 #for geolocation b='brew install postgis'
 
-import os
+
+# Load GDAL/GIS paths from the OS env (injected by Render)
+GDAL_LIBRARY_PATH = os.getenv("GDAL_LIBRARY_PATH")
+GEOS_LIBRARY_PATH = os.getenv("GEOS_LIBRARY_PATH")
+if GDAL_LIBRARY_PATH:
+    os.environ.setdefault("GDAL_LIBRARY_PATH", GDAL_LIBRARY_PATH)
+if GEOS_LIBRARY_PATH:
+    os.environ.setdefault("GEOS_LIBRARY_PATH", GEOS_LIBRARY_PATH)
+
+# Now the rest of your imports
 import dj_database_url
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-RENDER = os.environ.get("RENDER") == "true"
-DATABASE_URL = os.environ.get("DATABASE_URL")
-
+# DB setup...
+RENDER = os.getenv("RENDER") == "true"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if RENDER and not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set!")
 if RENDER:
-    if not DATABASE_URL:
-        print("Warning: DATABASE_URL is not set in environment variables. Falling back to SQLite for debugging.")
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.sqlite3",
-                "NAME": BASE_DIR / "db.sqlite3",
-            }
-        }
-    else:
-        DATABASES = {
-            "default": dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=600,
-                ssl_require=True,
-                engine="django.contrib.gis.db.backends.postgis",
-            )
-        }
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+            engine="django.contrib.gis.db.backends.postgis",
+        )
+    }
 else:
     DATABASES = {
         "default": {
@@ -195,9 +197,6 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
-
-GDAL_LIBRARY_PATH = "/opt/homebrew/lib/libgdal.dylib"
-SPATIALITE_LIBRARY_PATH = "/opt/homebrew/lib/mod_spatialite.dylib"
 
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
