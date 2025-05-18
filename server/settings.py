@@ -20,12 +20,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-66=5(@2@v&gxh)=$hu!h81w7jwz-1v*t#s5-+v)2xocfi)=(lh"
-
+SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get("DEBUG","False").lower()=="true"
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",") 
 
 # Application definition
 INSTALLED_APPS = [
@@ -91,44 +90,17 @@ if GDAL_LIBRARY_PATH:
 if GEOS_LIBRARY_PATH:
     os.environ.setdefault("GEOS_LIBRARY_PATH", GEOS_LIBRARY_PATH)
 
-import os
 import dj_database_url
-from pathlib import Path
-import logging
 
-logger = logging.getLogger(__name__)
+DATABASE_URL = os.environ.get("DATABASE_URL")
+db_conf = dj_database_url.parse(DATABASE_URL,
+                                conn_max_age=600,
+                                ssl_require=True)
+db_conf['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
+DATABASES = {
+    "default": db_conf
+}
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Database configuration
-if os.getenv("RENDER") == "true":
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    if DATABASE_URL:
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=600,
-                ssl_require=True,
-                engine="django.contrib.gis.db.backends.postgis",
-            ),
-        }
-        logger.info("DATABASE_URL found and database configured.")
-    else:
-        logger.warning("No DATABASE_URL set. Falling back to SQLite for debugging.")
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -228,4 +200,3 @@ if os.environ.get('RENDER'):
     # Add to the end of your settings.py file
 
 # Import GDAL settings explicitly, overriding any previous values
-from .gdal_settings import *
