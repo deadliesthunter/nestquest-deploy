@@ -95,13 +95,18 @@ import dj_database_url
 # DATABASE CONFIG
 if os.getenv("RENDER") == "true":
     DATABASES = {
-        "default": dj_database_url.config(
-            default=os.getenv("DATABASE_URL"),
-            conn_max_age=600,
-            ssl_require=True,
-            engine="django.contrib.gis.db.backends.postgis",
-        )
+        "default": {
+            "ENGINE": os.getenv("DB_ENGINE"),
+            "NAME": os.getenv("DB_NAME"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": os.getenv("DB_HOST"),      # <- must be non‑empty
+            "PORT": os.getenv("DB_PORT", "5432"),
+            "CONN_MAX_AGE": 600,
+            "OPTIONS": {"sslmode": "require"},
+        }
     }
+
 else:
     DATABASES = {
         "default": {

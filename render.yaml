@@ -32,6 +32,7 @@ services:
       - key: DB_PASSWORD
         value: "0hGzxQTOOFrUS7gyRSMyz7oelJFBpCfi"
       - key: DB_HOST
-        value: "dpg-d0ipooje5dus739rpao0-a" # <— the *internal* hostname Render shows you
+        value: dpg-d0ipooje5dus739rpao0-a.region.render.com
+      # <— the *internal* hostname Render shows you
       - key: DB_PORT
         value: "5432"
