@@ -91,6 +91,7 @@ if GDAL_LIBRARY_PATH:
 if GEOS_LIBRARY_PATH:
     os.environ.setdefault("GEOS_LIBRARY_PATH", GEOS_LIBRARY_PATH)
 
+import dj_database_url
 # DATABASE CONFIG
 if os.getenv("RENDER") == "true":
     DATABASES = {
