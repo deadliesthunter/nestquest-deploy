@@ -91,31 +91,26 @@ if GDAL_LIBRARY_PATH:
 if GEOS_LIBRARY_PATH:
     os.environ.setdefault("GEOS_LIBRARY_PATH", GEOS_LIBRARY_PATH)
 
-# Now the rest of your imports
-import dj_database_url
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# DB setup...
-RENDER = os.getenv("RENDER") == "true"
-DATABASE_URL = os.getenv("DATABASE_URL")
-if RENDER and not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL is not set!")
-if RENDER:
+# DATABASE CONFIG
+if os.getenv("RENDER") == "true":
     DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True,
-            engine="django.contrib.gis.db.backends.postgis",
-        )
+        "default": {
+            "ENGINE": os.getenv("DB_ENGINE", "django.contrib.gis.db.backends.postgis"),
+            "NAME": os.getenv("DB_NAME"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": os.getenv("DB_HOST"),
+            "PORT": os.getenv("DB_PORT", "5432"),
+            # if you need SSL or conn_max_age, you can still add them here:
+            "CONN_MAX_AGE": 600,
+            "OPTIONS": {"sslmode": "require"},
+        }
     }
 else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "NAME": Path(__file__).resolve().parent.parent / "db.sqlite3",
         }
     }
 # Password validation
