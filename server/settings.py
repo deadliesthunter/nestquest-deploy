@@ -91,30 +91,28 @@ if GDAL_LIBRARY_PATH:
 if GEOS_LIBRARY_PATH:
     os.environ.setdefault("GEOS_LIBRARY_PATH", GEOS_LIBRARY_PATH)
 
+import os
 import dj_database_url
-# DATABASE CONFIG
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 if os.getenv("RENDER") == "true":
     DATABASES = {
-        "default": {
-            "ENGINE": os.getenv("DB_ENGINE"),
-            "NAME": os.getenv("DB_NAME"),
-            "USER": os.getenv("DB_USER"),
-            "PASSWORD": os.getenv("DB_PASSWORD"),
-            "HOST": os.getenv("DB_HOST"),      # <- must be non‑empty
-            "PORT": os.getenv("DB_PORT", "5432"),
-            "CONN_MAX_AGE": 600,
-            "OPTIONS": {"sslmode": "require"},
-        }
+        'default': dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True,
+            engine="django.contrib.gis.db.backends.postgis",
+        ),
     }
-
 else:
     DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": Path(__file__).resolve().parent.parent / "db.sqlite3",
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-# Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
