@@ -24,7 +24,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG","False").lower()=="true"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",") 
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split()
 
 # Application definition
 INSTALLED_APPS = [
@@ -190,13 +190,3 @@ DEFAULT_FROM_EMAIL = 'noreply@nestquest.com'
 #EMAIL_HOST_PASSWORD ='Quester@123'
 
 # Add at the bottom of your file
-
-
-# Force Linux paths on Render
-if os.environ.get('RENDER'):
-    GDAL_LIBRARY_PATH = '/usr/lib/libgdal.so'
-    GEOS_LIBRARY_PATH = '/usr/lib/libgeos_c.so'
-
-    # Add to the end of your settings.py file
-
-# Import GDAL settings explicitly, overriding any previous values
