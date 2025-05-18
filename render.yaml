@@ -22,15 +22,16 @@ services:
         value: "/usr/share/gdal"
       - key: PROJ_LIB
         value: "/usr/share/proj"
+
       - key: DB_ENGINE
-        value: django.contrib.gis.db.backends.postgis
+        value: "django.contrib.gis.db.backends.postgis"
       - key: DB_NAME
-        value: nestquest_halt
+        value: "nestquest_halt"
       - key: DB_USER
-        value: nestquest_halt_user
+        value: "nestquest_halt_user"
       - key: DB_PASSWORD
-        value: 0hGzxQTOOFrUS7gyRSMyz7oelJFBpCfi
+        value: "0hGzxQTOOFrUS7gyRSMyz7oelJFBpCfi"
       - key: DB_HOST
-        value: dpg-xxx.region.render.com
+        value: "dpg-d0ipooje5dus739rpao0-a" # <— the *internal* hostname Render shows you
       - key: DB_PORT
         value: "5432"
