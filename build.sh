@@ -21,12 +21,7 @@ echo "GEOS found at: $GEOS_PATH"
 
 # Create environment file for persistent settings
 echo "Creating environment file..."
-cat > /opt/render/project/.env << EOF
-GDAL_LIBRARY_PATH=$GDAL_PATH
-GEOS_LIBRARY_PATH=$GEOS_PATH
-GDAL_DATA=/usr/share/gdal
-PROJ_LIB=/usr/share/proj
-EOF
+
 
 # Also create a file Django can import
 mkdir -p /opt/render/project/src/server/settings

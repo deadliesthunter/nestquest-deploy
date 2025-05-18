@@ -5,6 +5,7 @@ services:
     buildCommand: |
       ./build.sh
       echo "DATABASE_URL is $DATABASE_URL"
+      echo "RENDER is $RENDER"
       python manage.py migrate --noinput
     startCommand: gunicorn server.wsgi:application --bind=0.0.0.0:$PORT --workers=4
     envVars:
@@ -22,17 +23,3 @@ services:
         value: "/usr/share/gdal"
       - key: PROJ_LIB
         value: "/usr/share/proj"
-
-      - key: DB_ENGINE
-        value: "django.contrib.gis.db.backends.postgis"
-      - key: DB_NAME
-        value: "nestquest_halt"
-      - key: DB_USER
-        value: "nestquest_halt_user"
-      - key: DB_PASSWORD
-        value: "0hGzxQTOOFrUS7gyRSMyz7oelJFBpCfi"
-      - key: DB_HOST
-        value: dpg-d0ipooje5dus739rpao0-a.region.render.com
-      # <— the *internal* hostname Render shows you
-      - key: DB_PORT
-        value: "5432"

@@ -94,18 +94,33 @@ if GEOS_LIBRARY_PATH:
 import os
 import dj_database_url
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Database configuration
 if os.getenv("RENDER") == "true":
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv("DATABASE_URL"),
-            conn_max_age=600,
-            ssl_require=True,
-            engine="django.contrib.gis.db.backends.postgis",
-        ),
-    }
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    if DATABASE_URL:
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                ssl_require=True,
+                engine="django.contrib.gis.db.backends.postgis",
+            ),
+        }
+        logger.info("DATABASE_URL found and database configured.")
+    else:
+        logger.warning("No DATABASE_URL set. Falling back to SQLite for debugging.")
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 else:
     DATABASES = {
         'default': {
