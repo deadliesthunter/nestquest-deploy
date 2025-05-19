@@ -37,8 +37,14 @@ def get_auth_for_user(user):
 class LoginAPIView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
-        email = request.data.get("email").lower()
+    def post(self, request, *args, **kwargs):
+        email = request.data.get("email")
+        if not email:
+            return Response(
+                {"status": "error", "message": "Email field is required."},
+                status=HTTP_400_BAD_REQUEST
+            )
+        email = email.lower()
         password = request.data.get("password")
 
         # Authenticate the user
