@@ -1,53 +1,51 @@
 # filepath: render.yaml
 services:
   - type: web
-    name: nestquest-deploy # This is your Render service name
+    name: nestquest-deploy # This should match your Render service name
     env: python
-    # region: oregon
-    # plan: free
-    buildFilter: # Adjust these paths to match your actual source code directories
+    buildFilter:
       paths:
         - "server/**"
-        - "Login/**" # Add your app directories
+        - "Login/**"
         - "requirements.txt"
         - "manage.py"
-        # Add any other paths that, if changed, should trigger a rebuild
     buildCommand: |
       set -o errexit # Exit immediately if a command exits with a non-zero status.
 
       echo "Starting build process from repository root..."
 
-      # No 'cd deploy' needed if manage.py is at the repo root
+      # Ensure Python version is what you expect, if not set globally for the service
+      # python --version 
 
       echo "Installing Python dependencies from requirements.txt..."
-      pip install -r requirements.txt # Assumes requirements.txt is at the repo root
+      pip install -r requirements.txt
 
       echo "Collecting static files..."
-      python manage.py collectstatic --noinput --clear # Assumes manage.py is at the repo root
+      python manage.py collectstatic --noinput --clear
 
       echo "Applying database migrations..."
-      python manage.py migrate --noinput # Assumes manage.py is at the repo root
+      python manage.py migrate --noinput
 
       # Conditionally create superuser
+      echo "Checking CREATE_SUPERUSER variable: [$CREATE_SUPERUSER]" # Added for debugging
       if [[ "$CREATE_SUPERUSER" == "true" ]]; then
-        echo "CREATE_SUPERUSER is true. Creating superuser..."
+        echo "CREATE_SUPERUSER is 'true'. Attempting to create superuser..."
         python manage.py createsuperuser --no-input
         echo "Superuser creation command executed. IMPORTANT: Remember to set CREATE_SUPERUSER to false or remove it in the Render dashboard after this deploy."
       else
-        echo "CREATE_SUPERUSER is not 'true'. Skipping superuser creation."
+        echo "CREATE_SUPERUSER is not 'true' (actual value: [$CREATE_SUPERUSER]). Skipping superuser creation."
       fi
 
       echo "Build process completed."
-    startCommand: "gunicorn server.wsgi:application" # Assumes server/wsgi.py is at the repo root
+    startCommand: "gunicorn server.wsgi:application"
     envVars:
       - key: DJANGO_SETTINGS_MODULE
-        value: server.settings # Assumes server/settings.py is at the repo root
-      - key: PYTHON_VERSION
-        value: "3.11" # Or your project's Python version
-      # Your other envVars (DATABASE_URL, SECRET_KEY, GDAL/GEOS paths etc.)
-      # should primarily be set in the Render dashboard for security and flexibility.
-      # The DJANGO_SUPERUSER_* and CREATE_SUPERUSER vars are read from the dashboard.
-      - key: GDAL_LIBRARY_PATH # Example, if needed and not handled by apt-get
-        value: "/usr/lib/libgdal.so"
-      - key: GEOS_LIBRARY_PATH # Example, if needed and not handled by apt-get
-        value: "/usr/lib/libgeos_c.so"
+        value: server.settings
+      - key: PYTHON_VERSION # Ensure this matches your project's needs
+        value: "3.11"
+      # Other envVars like DATABASE_URL, SECRET_KEY, GDAL paths should be set in Render Dashboard
+      # For example:
+      # - key: GDAL_LIBRARY_PATH
+      #   value: "/usr/lib/libgdal.so" # If you're installing GDAL via apt-get in a Dockerfile or extended build
+      # - key: GEOS_LIBRARY_PATH
+      #   value: "/usr/lib/libgeos_c.so"
