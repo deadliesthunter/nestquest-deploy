@@ -1,0 +1,53 @@
+# filepath: render.yaml
+services:
+  - type: web
+    name: nestquest-deploy # This is your Render service name
+    env: python
+    # region: oregon
+    # plan: free
+    buildFilter: # Adjust these paths to match your actual source code directories
+      paths:
+        - "server/**"
+        - "Login/**" # Add your app directories
+        - "requirements.txt"
+        - "manage.py"
+        # Add any other paths that, if changed, should trigger a rebuild
+    buildCommand: |
+      set -o errexit # Exit immediately if a command exits with a non-zero status.
+
+      echo "Starting build process from repository root..."
+
+      # No 'cd deploy' needed if manage.py is at the repo root
+
+      echo "Installing Python dependencies from requirements.txt..."
+      pip install -r requirements.txt # Assumes requirements.txt is at the repo root
+
+      echo "Collecting static files..."
+      python manage.py collectstatic --noinput --clear # Assumes manage.py is at the repo root
+
+      echo "Applying database migrations..."
+      python manage.py migrate --noinput # Assumes manage.py is at the repo root
+
+      # Conditionally create superuser
+      if [[ "$CREATE_SUPERUSER" == "true" ]]; then
+        echo "CREATE_SUPERUSER is true. Creating superuser..."
+        python manage.py createsuperuser --no-input
+        echo "Superuser creation command executed. IMPORTANT: Remember to set CREATE_SUPERUSER to false or remove it in the Render dashboard after this deploy."
+      else
+        echo "CREATE_SUPERUSER is not 'true'. Skipping superuser creation."
+      fi
+
+      echo "Build process completed."
+    startCommand: "gunicorn server.wsgi:application" # Assumes server/wsgi.py is at the repo root
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: server.settings # Assumes server/settings.py is at the repo root
+      - key: PYTHON_VERSION
+        value: "3.11" # Or your project's Python version
+      # Your other envVars (DATABASE_URL, SECRET_KEY, GDAL/GEOS paths etc.)
+      # should primarily be set in the Render dashboard for security and flexibility.
+      # The DJANGO_SUPERUSER_* and CREATE_SUPERUSER vars are read from the dashboard.
+      - key: GDAL_LIBRARY_PATH # Example, if needed and not handled by apt-get
+        value: "/usr/lib/libgdal.so"
+      - key: GEOS_LIBRARY_PATH # Example, if needed and not handled by apt-get
+        value: "/usr/lib/libgeos_c.so"
