@@ -56,23 +56,32 @@ NestQuest is a modern room rental web application designed to simplify the proce
 
 ## 📸 Demo Screenshots
 
-> _(Replace these placeholders with your actual screenshots)_
-
-### 🏠 Home Page
-
-![Home Page](./screenshots/home.png)
-
-### 🔍 Search & Listings
-
-![Search](./screenshots/maps.png)
-
-### 🔐 Login Page
-
-![Login](./screenshots/login.png)
-
-### 📋 Owner Dashboard
-
-![Dashboard](./screenshots/profile.png)
+<table width="100%">
+  <tr>
+    <td align="center" width="50%">
+      <img src="./screenshots/home.png" width="100%" alt="Home Page">
+      <br>
+      <b>🏠 Home Page</b>
+    </td>
+    <td align="center" width="50%">
+      <img src="./screenshots/maps.png" width="100%" alt="Search & Listings">
+      <br>
+      <b>🔍 Search & Listings</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="./screenshots/login.png" width="100%" alt="Login Page">
+      <br>
+      <b>🔐 Login Page</b>
+    </td>
+    <td align="center" width="50%">
+      <img src="./screenshots/profile.png" width="100%" alt="Owner Dashboard">
+      <br>
+      <b>📋 Owner Dashboard</b>
+    </td>
+  </tr>
+</table>
 
 ---
 
